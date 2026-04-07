@@ -217,9 +217,9 @@ export default function AdminClientJourney() {
               <div className="flex items-center gap-4">
                 <button 
                   onClick={() => navigate('/admin-dashboard')}
-                  className="p-3 bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all"
+                  className="p-3.5 bg-blue-600 text-white hover:bg-blue-700 rounded-2xl transition-all shadow-lg shadow-blue-600/30"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className="w-6 h-6 stroke-[3]" />
                 </button>
                 <div>
                    <div className="flex items-center gap-3 mb-1">
