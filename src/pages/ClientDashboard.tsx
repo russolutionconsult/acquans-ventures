@@ -8,7 +8,7 @@ import {
 import { motion } from 'framer-motion';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, orderBy, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import Layout from '@/components/Layout';
 
 interface Project {
@@ -80,7 +80,7 @@ export default function ClientDashboard() {
         const msgQ = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
         const msgSnap = await getDocs(msgQ);
         const allMsgs = msgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setMessages(allMsgs.filter((m: any) => m.receiver_id === targetUid));
+        setMessages(allMsgs.filter((m: any) => m.receiver_id === targetUid || m.sender_id === targetUid));
         
       } catch (err) {
         console.error('Error fetching target profile:', err);
@@ -324,37 +324,87 @@ export default function ClientDashboard() {
                         <p className="text-gray-500 mt-2 max-w-sm mx-auto">Private communications regarding your projects will appear here.</p>
                       </div>
                     ) : (
-                      messages.map((msg: any) => (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          key={msg.id}
-                          className="bg-white border-2 border-emerald-100 p-8 rounded-[32px] shadow-sm hover:shadow-md transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-4">
-                               <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                                  <ShieldCheck className="w-6 h-6" />
-                               </div>
-                               <div>
-                                  <h4 className="font-bold text-gray-900 text-lg">{msg.sender_name}</h4>
-                                  <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Official Management Note</p>
-                               </div>
+                      messages.map((msg: any) => {
+                        const isSentByMe = msg.sender_id === (userProfile?.id || auth.currentUser?.uid);
+                        
+                        return (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            key={msg.id}
+                            className={`p-8 rounded-[32px] shadow-sm hover:shadow-md transition-all border-2 ${
+                              isSentByMe 
+                                ? 'bg-blue-50 border-blue-100 ml-auto max-w-[90%]' 
+                                : 'bg-white border-emerald-100 mr-auto max-w-[90%]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-4">
+                                 <div className={`w-12 h-12 ${isSentByMe ? 'bg-blue-600' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-lg`}>
+                                    {isSentByMe ? <MessageSquare className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
+                                 </div>
+                                 <div>
+                                    <h4 className="font-bold text-gray-900 text-lg">{isSentByMe ? 'You' : msg.sender_name}</h4>
+                                    <p className={`text-[10px] ${isSentByMe ? 'text-blue-600' : 'text-emerald-600'} font-black uppercase tracking-widest`}>
+                                       {isSentByMe ? 'Client Response' : 'Official Management Note'}
+                                    </p>
+                                 </div>
+                              </div>
+                              <span className="text-xs font-bold text-gray-400">
+                                 {new Date(msg.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </span>
                             </div>
-                            <span className="text-xs font-bold text-gray-400">
-                               {new Date(msg.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          
-                          <div className="bg-emerald-50/30 p-6 rounded-2xl border border-emerald-50 text-gray-800 leading-relaxed text-base font-medium">
-                             {msg.content}
-                          </div>
-                          
-                          <div className="mt-6 flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> This message is end-to-end encrypted and visible only to you.
-                          </div>
-                        </motion.div>
-                      ))
+                            
+                            <div className={`${isSentByMe ? 'bg-white' : 'bg-emerald-50/30'} p-6 rounded-2xl border ${isSentByMe ? 'border-blue-100' : 'border-emerald-50'} text-gray-800 leading-relaxed text-base font-medium`}>
+                               {msg.content}
+                            </div>
+                            
+                            {!isSentByMe && (
+                              <div className="mt-6 flex flex-col gap-4">
+                                 <textarea 
+                                    id={`reply-${msg.id}`}
+                                    placeholder="Type your reply here..."
+                                    className="w-full p-4 bg-white border border-gray-200 rounded-2xl outline-none focus:border-primary transition-all text-sm min-h-[100px]"
+                                 />
+                                 <div className="flex items-center justify-between">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                                       <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 text-emerald-500" /> End-to-end encrypted.
+                                    </p>
+                                    <button 
+                                      onClick={async () => {
+                                        const textarea = document.getElementById(`reply-${msg.id}`) as HTMLTextAreaElement;
+                                        if (!textarea?.value.trim()) return;
+                                        
+                                        try {
+                                          const replyData = {
+                                            quote_id: msg.quote_id || '',
+                                            receiver_id: msg.sender_id, // Reply to the sender
+                                            sender_id: auth.currentUser?.uid,
+                                            sender_name: userProfile?.full_name || 'Client',
+                                            content: textarea.value,
+                                            timestamp: new Date().toISOString(),
+                                            is_read: false
+                                          };
+                                          
+                                          await setDoc(doc(collection(db, 'messages')), replyData);
+                                          textarea.value = '';
+                                          alert('Reply sent!');
+                                          // Refresh messages local state
+                                          setMessages(prev => [{...replyData, id: Math.random().toString()}, ...prev]);
+                                        } catch (err) {
+                                          console.error('Error sending reply:', err);
+                                        }
+                                      }}
+                                      className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all text-xs flex items-center gap-2"
+                                    >
+                                      Send Reply
+                                    </button>
+                                 </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })
                     )}
                  </div>
               </div>

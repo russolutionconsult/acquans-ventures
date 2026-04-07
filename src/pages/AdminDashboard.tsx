@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs, doc, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, updateDoc, setDoc, deleteDoc, onSnapshot, where } from 'firebase/firestore';
 import { signOut, createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { initializeApp, deleteApp } from 'firebase/app';
 import Layout from '@/components/Layout';
@@ -45,10 +45,11 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'quotes' | 'clients' | 'projects'>('overview');
   const [clients, setClients] = useState<any[]>([]);
   const [showCreateClient, setShowCreateClient] = useState(false);
-  const [clientData, setClientData] = useState({ name: '', email: '', password: '' });
+  const [clientData, setClientData] = useState({ name: '', email: '', password: '', amount: '', selectedQuoteId: '' });
   const [clientLoading, setClientLoading] = useState(false);
   const [clientStatus, setClientStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [recentMessages, setRecentMessages] = useState<any[]>([]);
   
   const navigate = useNavigate();
 
@@ -56,6 +57,20 @@ export default function AdminDashboard() {
     fetchQuotes();
     fetchStaff();
     fetchClients();
+
+    // Listen for recent client replies to admin
+    const msgQ = query(
+      collection(db, 'messages'),
+      where('receiver_id', '==', auth.currentUser?.uid || ''),
+      orderBy('timestamp', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(msgQ, (snapshot) => {
+      const msgs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setRecentMessages(msgs.slice(0, 5)); // Only show last 5
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const updateProjectProgress = async (quoteId: string, progress: number) => {
@@ -190,13 +205,16 @@ export default function AdminDashboard() {
       const clientQuotes = quoteSnap.docs.filter(doc => doc.data().email?.toLowerCase() === clientData.email.toLowerCase());
       
       for (const quoteDoc of clientQuotes) {
-        await updateDoc(doc(db, 'quotes', quoteDoc.id), {
-          client_id: targetUid
-        });
+        const updateData: any = { client_id: targetUid };
+        if (quoteDoc.id === clientData.selectedQuoteId && clientData.amount) {
+          updateData.amount = parseFloat(clientData.amount);
+          updateData.status = 'converted';
+        }
+        await updateDoc(doc(db, 'quotes', quoteDoc.id), updateData);
       }
       
       setQuotes(prev => prev.map(q => q.email?.toLowerCase() === clientData.email.toLowerCase() ? { ...q, client_id: targetUid } : q));
-      setClientData({ name: '', email: '', password: '' });
+      setClientData({ name: '', email: '', password: '', amount: '', selectedQuoteId: '' });
       setTimeout(() => setShowCreateClient(false), 3000);
 
     } catch (err: any) {
@@ -243,7 +261,7 @@ export default function AdminDashboard() {
     } catch (err) { return 'Invalid Date'; }
   };
 
-  const stats = [
+  const statsList = [
     { label: 'Total Quotes', value: quotes.length, icon: MessageSquare, color: 'bg-blue-500' },
     { label: 'Pending Request', value: quotes.filter(q => q.status === 'pending').length, icon: Clock, color: 'bg-amber-500' },
     { label: 'Successful Clients', value: 12, icon: Users, color: 'bg-emerald-500' },
@@ -326,7 +344,7 @@ export default function AdminDashboard() {
             {activeTab === 'overview' && (
               <div className="space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {stats.map((stat, i) => (
+                  {statsList.map((stat, i) => (
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -345,76 +363,89 @@ export default function AdminDashboard() {
                   ))}
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="p-6 border-b border-gray-50 flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900">Recent Quote Requests</h2>
-                    <button 
-                      onClick={() => setActiveTab('quotes')}
-                      className="text-primary hover:underline text-sm font-medium flex items-center gap-1"
-                    >
-                      View all <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
-                        <tr>
-                          <th className="px-6 py-4 font-semibold">Client</th>
-                          <th className="px-6 py-4 font-semibold">Service</th>
-                          <th className="px-6 py-4 font-semibold">Status</th>
-                          <th className="px-6 py-4 font-semibold">Date</th>
-                          <th className="px-6 py-4 font-semibold text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {quotes.slice(0, 5).map((quote) => (
-                          <tr 
-                            key={quote.id} 
-                            onClick={() => navigate(`/admin/client-journey/${quote.id}`)}
-                            className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
-                          >
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                  {quote.name[0]}
-                                </div>
-                                <div>
-                                  <div className="font-bold text-gray-900">{quote.name}</div>
-                                  <div className="text-xs text-gray-400">{quote.email}</div>
-                                  {quote.assigned_name && (
-                                    <div className="mt-1 text-[10px] font-bold text-primary flex items-center gap-1 uppercase tracking-tighter">
-                                      <Users className="w-2.5 h-2.5" /> Assigned to: {quote.assigned_name}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
-                                {quote.service}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <StatusBadge status={quote.status} />
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500">
-                              {formatDate(quote.created_at)}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/admin/client-journey/${quote.id}`);
-                                }}
-                                className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
-                              >
-                                <MoreVertical className="w-5 h-5" />
-                              </button>
-                            </td>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Recent Quote Requests Table */}
+                  <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-gray-900">Recent Quote Requests</h2>
+                      <button 
+                        onClick={() => setActiveTab('quotes')}
+                        className="text-primary hover:underline text-sm font-medium flex items-center gap-1"
+                      >
+                        View all <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
+                          <tr>
+                            <th className="px-6 py-4 font-semibold">Client</th>
+                            <th className="px-6 py-4 font-semibold text-right">Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {quotes.slice(0, 5).map((quote) => (
+                            <tr 
+                              key={quote.id} 
+                              onClick={() => navigate(`/admin/client-journey/${quote.id}`)}
+                              className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                            >
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                    {quote.name[0]}
+                                  </div>
+                                  <div>
+                                    <div className="font-bold text-gray-900 line-clamp-1">{quote.name}</div>
+                                    <div className="text-xs text-gray-400">{formatDate(quote.created_at)}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <StatusBadge status={quote.status} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* New: Recent Client Replies Sidebar */}
+                  <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-blue-50/50">
+                      <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5 text-primary" /> Client Replies
+                      </h2>
+                      {recentMessages.filter(m => !m.is_read).length > 0 && (
+                        <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">NEW</span>
+                      )}
+                    </div>
+                    <div className="p-4 flex-1 space-y-4">
+                       {recentMessages.length === 0 ? (
+                         <div className="text-center py-10">
+                            <MessageSquare className="w-10 h-10 text-gray-100 mx-auto mb-2" />
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No recent replies</p>
+                         </div>
+                       ) : (
+                         recentMessages.map((msg) => (
+                           <div 
+                              key={msg.id} 
+                              onClick={() => navigate(`/admin/client-journey/${msg.quote_id}`)}
+                              className={`p-4 rounded-2xl border transition-all cursor-pointer hover:border-primary hover:bg-primary/5 ${msg.is_read ? 'bg-gray-50/50 border-gray-100' : 'bg-white border-blue-200 ring-1 ring-blue-100 shadow-sm'}`}
+                           >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-tighter">{msg.sender_name}</span>
+                                <span className="text-[9px] text-gray-400 font-bold">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              </div>
+                              <p className="text-xs text-gray-700 font-bold line-clamp-2">"{msg.content}"</p>
+                           </div>
+                         ))
+                       )}
+                    </div>
+                    <div className="p-4 border-t border-gray-50 bg-gray-50/50">
+                      <button className="w-full py-3 text-xs font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">View All Messages</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -661,7 +692,7 @@ export default function AdminDashboard() {
                         onChange={(e) => {
                           const quote = quotes.find(q => q.id === e.target.value);
                           if (quote) {
-                            setClientData({ ...clientData, name: quote.name, email: quote.email });
+                            setClientData({ ...clientData, name: quote.name, email: quote.email, selectedQuoteId: quote.id });
                           }
                         }}
                       >
@@ -708,6 +739,21 @@ export default function AdminDashboard() {
                         className="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none"
                         placeholder="••••••••"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Project Value (Amount in GHS)</label>
+                      <div className="relative">
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-400">₵</span>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          value={clientData.amount}
+                          onChange={(e) => setClientData({...clientData, amount: e.target.value})}
+                          className="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none"
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
 
                     {clientStatus && (
@@ -779,57 +825,31 @@ function ProjectAdminCard({ project, onUpdateProgress, onUpdateInfo, onUpdateLoc
         </div>
 
         <div className="space-y-4 mb-6">
-           <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest px-1">
-             <span className="text-gray-400">Execution Progress</span>
-             <span className="text-primary">{project.manual_progress || 0}%</span>
-           </div>
-           <div className="relative h-2 w-full bg-gray-200/50 rounded-full overflow-hidden">
-             <div 
-               className="absolute top-0 left-0 h-full bg-primary transition-all duration-500 ease-out shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)]"
-               style={{ width: `${project.manual_progress || 0}%` }}
-             />
-             <input 
-                type="range" 
-                min="0" max="100" 
-                value={project.manual_progress || 0}
-                onChange={(e) => onUpdateProgress(project.id, parseInt(e.target.value))}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-             />
-           </div>
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
+            <span>Execution Status</span>
+            <span className={`${style.text}`}>{project.manual_progress || 0}%</span>
+          </div>
+          <div className="h-3 bg-white/50 rounded-full overflow-hidden p-0.5 border border-white/50">
+            <div 
+              className={`h-full rounded-full ${style.text.replace('text-', 'bg-')} shadow-sm transition-all duration-1000`} 
+              style={{ width: `${project.manual_progress || 0}%` }}
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-           <label className="text-[10px] font-bold text-primary uppercase flex items-center gap-2 px-1">
-             <MessageSquare className="w-3.5 h-3.5" /> Latest Site Status (Shared with Client)
-           </label>
-           <textarea 
-             className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs outline-none focus:border-primary transition-all min-h-[84px] leading-relaxed resize-none"
-             placeholder="What's the current state of work?"
-             defaultValue={project.project_info || ""}
-             onBlur={(e) => onUpdateInfo(project.id, e.target.value)}
-           />
-           <p className="text-[9px] text-gray-400 italic px-1">Saves automatically on blur.</p>
+        <div className="flex items-center justify-between bg-white/40 p-4 rounded-2xl border border-white/40">
+           <div>
+             <p className="text-[10px] font-black uppercase text-gray-400 tracking-tighter">Project Value</p>
+             <p className={`text-lg font-black ${style.text}`}>₵{project.amount?.toLocaleString() || '0.00'}</p>
+           </div>
+           <MapPin className={`w-5 h-5 ${style.text} opacity-30`} />
         </div>
-      </div>
-      
-      <div className="px-8 py-4 bg-gray-50/50 border-t border-gray-100/50 flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1 mr-4">
-           <MapPin className="w-4 h-4 text-primary opacity-50" />
-           <input 
-              type="text" 
-              placeholder="Set Site Location..." 
-              className="bg-transparent border-none outline-none text-[11px] text-gray-600 font-bold uppercase p-0 w-full focus:text-primary transition-colors"
-              defaultValue={project.location || ""}
-              onBlur={(e) => onUpdateLocation(project.id, e.target.value)}
-           />
-        </div>
-        <StatusBadge status={project.status} />
       </div>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: any }) {
+function StatusBadge({ status }: { status: Quote['status'] }) {
   const styles: any = {
     pending: 'bg-amber-100 text-amber-700 border-amber-200',
     reviewed: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -840,15 +860,12 @@ function StatusBadge({ status }: { status: any }) {
     converted: 'bg-pink-100 text-pink-700 border-pink-200',
     completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     lost: 'bg-red-100 text-red-700 border-red-200',
-    suspended: 'bg-gray-100 text-gray-400 border-gray-200 shadow-none grayscale'
+    suspended: 'bg-gray-100 text-gray-400 border-gray-200'
   };
 
-  const currentStatus = status || 'pending';
-  const currentStyle = styles[currentStatus] || styles.pending;
-
   return (
-    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${currentStyle}`}>
-      {currentStatus.replace('_', ' ')}
+    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${styles[status]}`}>
+      {status.replace('_', ' ')}
     </span>
   );
 }

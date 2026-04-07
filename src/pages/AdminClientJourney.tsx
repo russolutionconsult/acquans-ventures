@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, collection, query, orderBy, getDocs, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, orderBy, getDocs, setDoc, where, onSnapshot } from 'firebase/firestore';
 import Layout from '@/components/Layout';
 
 interface Quote {
@@ -41,6 +41,7 @@ export default function AdminClientJourney() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
 
   useEffect(() => {
     fetchQuoteData();
@@ -53,7 +54,29 @@ export default function AdminClientJourney() {
       const quoteRef = doc(db, 'quotes', id);
       const quoteSnap = await getDoc(quoteRef);
       if (quoteSnap.exists()) {
-        setQuote({ id: quoteSnap.id, ...quoteSnap.data() } as Quote);
+        const data = { id: quoteSnap.id, ...quoteSnap.data() } as Quote;
+        setQuote(data);
+        
+        // Fetch Real-time messages for this client/quote
+        if (data.client_id) {
+           const msgQ = query(
+             collection(db, 'messages'), 
+             where('receiver_id', 'in', [data.client_id, auth.currentUser?.uid]),
+             orderBy('timestamp', 'desc')
+           );
+           
+           const unsubscribe = onSnapshot(msgQ, (snapshot) => {
+             const msgs = snapshot.docs
+               .map(d => ({ id: d.id, ...d.data() }))
+               .filter((m: any) => 
+                 (m.sender_id === data.client_id && m.receiver_id === auth.currentUser?.uid) ||
+                 (m.sender_id === auth.currentUser?.uid && m.receiver_id === data.client_id)
+               );
+             setMessages(msgs);
+           });
+           
+           return unsubscribe;
+        }
       }
     } catch (err) {
       console.error('Error fetching quote:', err);
@@ -182,10 +205,14 @@ export default function AdminClientJourney() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="min-h-screen bg-[#F1F5F9] relative overflow-hidden">
+        {/* Background Decorative Glows */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2" />
+
         {/* Journey Header */}
-        <div className="bg-white border-b border-slate-200 sticky top-[72px] z-40">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-8 relative z-40">
+          <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
                 <button 
@@ -199,9 +226,9 @@ export default function AdminClientJourney() {
                       <h1 className="text-2xl font-bold text-slate-900">{quote.name}</h1>
                       <StatusBadge status={quote.status} />
                    </div>
-                   <div className="flex items-center gap-4 text-sm text-slate-400 font-medium">
-                      <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {formatDate(quote.created_at)}</span>
-                      <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4" /> {quote.service}</span>
+                   <div className="flex items-center gap-4 text-sm text-slate-900 font-black">
+                      <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-primary" /> {formatDate(quote.created_at)}</span>
+                      <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-primary" /> {quote.service}</span>
                    </div>
                 </div>
               </div>
@@ -224,171 +251,227 @@ export default function AdminClientJourney() {
           </div>
         </div>
 
-        <main className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
+        <main className="max-w-7xl mx-auto px-4 lg:px-8 pb-10 pt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Progress & Management */}
             <div className="lg:col-span-2 space-y-8">
               {/* Client Journey Visualizer */}
-              <section className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                       <Clock className="w-5 h-5 text-primary" /> Lifecycle Management
+              <section className="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(37,99,235,0.15)] border-2 border-blue-500 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-800 p-8 flex items-center justify-between">
+                    <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-wider">
+                       <Clock className="w-6 h-6 text-blue-200" /> Lifecycle Management
                     </h2>
-                    <span className="text-xs font-black text-primary uppercase bg-primary/10 px-4 py-1.5 rounded-full">Stage: {(quote.status || 'pending').replace('_', ' ')}</span>
+                    <span className="text-xs font-black text-white uppercase bg-white/30 px-6 py-2 rounded-full border border-white/40 backdrop-blur-xl">Stage: {(quote.status || 'pending').replace('_', ' ')}</span>
                 </div>
+                
+                <div className="p-8 bg-blue-50/20">
+                  <div className="relative mb-12">
+                    <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2" />
+                    <div 
+                        className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 transition-all duration-700" 
+                        style={{ 
+                          width: (
+                            !quote.status || quote.status === 'pending' || quote.status === 'reviewed' ? '12.5%' :
+                            quote.status === 'in_review' ? '25%' :
+                            quote.status === 'contacted' ? '37.5%' :
+                            quote.status === 'quoted' ? '50%' :
+                            quote.status === 'negotiating' ? '62.5%' :
+                            quote.status === 'converted' ? '75%' :
+                            quote.status === 'completed' ? '100%' : '0%'
+                          )
+                        }}
+                    />
+                    <div className="relative flex justify-between">
+                        {['pending', 'in_review', 'contacted', 'quoted', 'negotiating', 'converted', 'completed'].map((stage, i) => (
+                          <div key={stage} className="flex flex-col items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full border-4 ${
+                              quote.status === stage || isAfter(quote.status || 'pending', stage) ? 'bg-primary border-primary/20 text-white' : 'bg-white border-slate-100 text-slate-300'
+                            } flex items-center justify-center transition-all z-10 shadow-lg`}>
+                                <CheckCircle2 className="w-5 h-5" />
+                            </div>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${quote.status === stage ? 'text-blue-800' : 'text-slate-900'}`}>
+                                {stage.replace('_', ' ')}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
 
-                <div className="relative mb-12">
-                   <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2" />
-                   <div 
-                      className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 transition-all duration-700" 
-                      style={{ 
-                        width: (
-                          !quote.status || quote.status === 'pending' || quote.status === 'reviewed' ? '12.5%' :
-                          quote.status === 'in_review' ? '25%' :
-                          quote.status === 'contacted' ? '37.5%' :
-                          quote.status === 'quoted' ? '50%' :
-                          quote.status === 'negotiating' ? '62.5%' :
-                          quote.status === 'converted' ? '75%' :
-                          quote.status === 'completed' ? '100%' : '0%'
-                        )
-                      }}
-                   />
-                   <div className="relative flex justify-between">
-                      {['pending', 'in_review', 'contacted', 'quoted', 'negotiating', 'converted', 'completed'].map((stage, i) => (
-                        <div key={stage} className="flex flex-col items-center gap-3">
-                           <div className={`w-10 h-10 rounded-full border-4 ${
-                             quote.status === stage || isAfter(quote.status || 'pending', stage) ? 'bg-primary border-primary/20 text-white' : 'bg-white border-slate-100 text-slate-300'
-                           } flex items-center justify-center transition-all z-10 shadow-lg`}>
-                              <CheckCircle2 className="w-5 h-5" />
-                           </div>
-                           <span className={`text-[10px] font-bold uppercase tracking-tighter ${quote.status === stage ? 'text-primary' : 'text-slate-400'}`}>
-                              {stage.replace('_', ' ')}
-                           </span>
-                        </div>
-                      ))}
-                   </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                   <StageButton active={quote.status === 'in_review'} onClick={() => updateQuoteStatus('in_review')} icon={Filter} label="Review Request" color="blue" />
-                   <StageButton active={quote.status === 'contacted'} onClick={() => updateQuoteStatus('contacted')} icon={Phone} label="Call Made" color="purple" />
-                   <StageButton active={quote.status === 'quoted'} onClick={() => updateQuoteStatus('quoted')} icon={FileText} label="Invoice Sent" color="amber" />
-                   <StageButton active={quote.status === 'negotiating'} onClick={() => updateQuoteStatus('negotiating')} icon={Users} label="Negotiating" color="orange" />
-                   <StageButton active={quote.status === 'converted'} onClick={() => updateQuoteStatus('converted')} icon={Heart} label="Client Signed" color="pink" />
-                   <StageButton active={quote.status === 'completed'} onClick={() => updateQuoteStatus('completed')} icon={CheckCircle2} label="Job Done" color="emerald" />
+                  <div className="flex flex-wrap gap-2">
+                    <StageButton active={quote.status === 'in_review'} onClick={() => updateQuoteStatus('in_review')} icon={Filter} label="Review Request" color="blue" />
+                    <StageButton active={quote.status === 'contacted'} onClick={() => updateQuoteStatus('contacted')} icon={Phone} label="Call Made" color="purple" />
+                    <StageButton active={quote.status === 'quoted'} onClick={() => updateQuoteStatus('quoted')} icon={FileText} label="Invoice Sent" color="amber" />
+                    <StageButton active={quote.status === 'negotiating'} onClick={() => updateQuoteStatus('negotiating')} icon={Users} label="Negotiating" color="orange" />
+                    <StageButton active={quote.status === 'converted'} onClick={() => updateQuoteStatus('converted')} icon={Heart} label="Client Signed" color="pink" />
+                    <StageButton active={quote.status === 'completed'} onClick={() => updateQuoteStatus('completed')} icon={CheckCircle2} label="Job Done" color="emerald" />
+                  </div>
                 </div>
               </section>
 
               {/* Execution Progress Center */}
-              <section className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
-                 <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                       <Briefcase className="w-5 h-5 text-primary" /> Execution Center
+              <section className="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(16,185,129,0.15)] border-2 border-emerald-500 overflow-hidden">
+                 <div className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-800 p-8 flex items-center justify-between">
+                    <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-wider">
+                       <Briefcase className="w-6 h-6 text-emerald-200" /> Execution Center
                     </h2>
                     <div className="text-right">
-                       <p className="text-xs text-slate-400 font-bold uppercase">Manual Progress</p>
-                       <p className="text-3xl font-black text-primary leading-none">{quote.manual_progress || 0}%</p>
+                       <p className="text-xs text-white/70 font-bold uppercase tracking-widest">Manual Progress</p>
+                       <p className="text-4xl font-black text-white leading-none drop-shadow-md">{quote.manual_progress || 0}%</p>
                     </div>
                  </div>
 
-                 <div className="bg-slate-50 p-6 rounded-[24px] mb-8 border border-slate-100">
-                    <div className="flex justify-between items-center mb-4">
-                       <span className="text-sm font-bold text-slate-600">Slide to Update Job Status</span>
-                       <span className="text-xs text-primary font-black bg-white px-3 py-1 rounded-lg border border-primary/10">Real-time sync</span>
-                    </div>
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="100" 
-                      value={quote.manual_progress || 0}
-                      onChange={(e) => updateProjectProgress(parseInt(e.target.value))}
-                      className="w-full h-4 bg-slate-200 rounded-full appearance-none cursor-pointer accent-primary"
-                    />
-                    <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                       <span>Startup</span>
-                       <span>Final Delivery</span>
-                    </div>
-                 </div>
+                 <div className="p-8 bg-emerald-50/20">
+                  <div className="bg-slate-50 p-6 rounded-[24px] mb-8 border border-slate-100">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-sm font-black text-slate-900">Slide to Update Job Status</span>
+                        <span className="text-xs text-primary font-black bg-white px-3 py-1 rounded-lg border border-primary/10">Real-time sync</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="100" 
+                        value={quote.manual_progress || 0}
+                        onChange={(e) => updateProjectProgress(parseInt(e.target.value))}
+                        className="w-full h-4 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #10B981 ${quote.manual_progress || 0}%, #E2E8F0 ${quote.manual_progress || 0}%)`
+                        }}
+                      />
+                      <style dangerouslySetInnerHTML={{ __html: `
+                         input[type=range]::-webkit-slider-thumb {
+                           -webkit-appearance: none;
+                           height: 24px;
+                           width: 24px;
+                           border-radius: 50%;
+                           background: #2563EB;
+                           cursor: pointer;
+                           border: 3px solid white;
+                           box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                         }
+                         input[type=range]::-moz-range-thumb {
+                           height: 24px;
+                           width: 24px;
+                           border-radius: 50%;
+                           background: #2563EB;
+                           cursor: pointer;
+                           border: 3px solid white;
+                           box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                         }
+                      `}} />
+                      <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span>Startup</span>
+                        <span>Final Delivery</span>
+                      </div>
+                  </div>
 
-                 <div>
-                    <p className="text-xs text-slate-400 font-bold uppercase mb-4 flex items-center gap-2">
-                       <MessageSquare className="w-4 h-4" /> Client Communication Hub (Dashboard Message)
-                    </p>
-                    <div className="bg-emerald-50/30 border border-emerald-100/50 rounded-[24px] p-6">
-                       <textarea 
-                          id="client-msg-area"
-                          className="w-full p-4 bg-white border border-emerald-100 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm min-h-[120px] shadow-sm mb-4"
-                          placeholder="Type a message that will appear on this client's portal..."
-                       />
-                       <div className="flex items-center justify-between">
-                          <p className="text-[10px] text-emerald-600/60 font-medium italic max-w-xs">
-                             Messages sent here go directly to the 'Updates' section of the client's private dashboard.
-                          </p>
-                          <button 
-                            onClick={() => {
-                              const textarea = document.getElementById('client-msg-area') as HTMLTextAreaElement;
-                              if (textarea && quote.client_id) {
-                                sendMessageToClient(textarea.value);
-                                textarea.value = '';
-                              } else {
-                                alert('This lead has no registered client account yet. Create one from the Dashboard first!');
-                              }
-                            }}
-                            className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all text-xs flex items-center gap-2 shadow-lg shadow-emerald-100"
-                          >
-                            <Mail className="w-4 h-4" /> Post Update
-                          </button>
-                       </div>
-                    </div>
-                 </div>
+                  <div>
+                      <p className="text-xs text-slate-900 font-black uppercase mb-4 flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-primary" /> Client Communication Hub
+                      </p>
+                      
+                      <div className="space-y-4 mb-8 max-h-[400px] overflow-y-auto p-4 bg-slate-50/50 rounded-3xl border border-slate-100">
+                         {messages.length === 0 ? (
+                           <p className="text-center py-10 text-slate-400 text-xs font-bold uppercase italic">No project history or messages yet.</p>
+                         ) : (
+                           messages.map((msg) => (
+                             <div key={msg.id} className={`flex ${msg.sender_id === auth.currentUser?.uid ? 'justify-end' : 'justify-start'}`}>
+                               <div className={`max-w-[80%] p-4 rounded-2xl ${
+                                 msg.sender_id === auth.currentUser?.uid 
+                                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-100 rounded-tr-none' 
+                                   : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none'
+                               }`}>
+                                 <p className="text-xs font-bold mb-1 opacity-70">
+                                   {msg.sender_id === auth.currentUser?.uid ? 'You' : msg.sender_name}
+                                 </p>
+                                 <p className="text-sm font-medium">{msg.content}</p>
+                                 <p className="text-[10px] opacity-50 mt-2 text-right">
+                                   {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                 </p>
+                               </div>
+                             </div>
+                           ))
+                         )}
+                      </div>
+                      <div className="bg-emerald-50/30 border border-emerald-100/50 rounded-[24px] p-6">
+                        <textarea 
+                            id="client-msg-area"
+                            className="w-full p-4 bg-white border border-emerald-100 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm min-h-[120px] shadow-sm mb-4"
+                            placeholder="Type a message that will appear on this client's portal..."
+                        />
+                        <div className="flex items-center justify-between">
+                            <p className="text-[10px] text-emerald-600/60 font-medium italic max-w-xs">
+                              Messages sent here go directly to the 'Updates' section of the client's private dashboard.
+                            </p>
+                            <button 
+                              onClick={() => {
+                                const textarea = document.getElementById('client-msg-area') as HTMLTextAreaElement;
+                                if (textarea && quote.client_id) {
+                                  sendMessageToClient(textarea.value);
+                                  textarea.value = '';
+                                } else {
+                                  alert('This lead has no registered client account yet. Create one from the Dashboard first!');
+                                }
+                              }}
+                              className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all text-xs flex items-center gap-2 shadow-lg shadow-emerald-100"
+                            >
+                              <Mail className="w-4 h-4" /> Post Update
+                            </button>
+                        </div>
+                      </div>
+                  </div>
+                </div>
               </section>
             </div>
 
             {/* Right Column: Key Details */}
             <div className="space-y-8">
               {/* Site Details */}
-              <section className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
-                <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-primary" /> Site & Logistics
-                </h3>
+              <section className="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(139,92,246,0.15)] border-2 border-violet-500 overflow-hidden">
+                <div className="bg-gradient-to-r from-violet-700 via-violet-600 to-purple-800 p-8">
+                  <h3 className="text-lg font-black text-white flex items-center gap-3 uppercase tracking-widest">
+                    <MapPin className="w-6 h-6 text-violet-200" /> Site & Logistics
+                  </h3>
+                </div>
                 
-                <div className="space-y-6">
-                  <div>
-                    <label className="text-xs text-slate-400 font-bold uppercase block mb-2">Project Location</label>
-                    <div className="relative">
-                       <input 
-                          type="text" 
-                          className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20"
-                          placeholder="Enter site address..."
-                          defaultValue={quote.location || ""}
-                          onBlur={(e) => updateProjectLocation(e.target.value)}
-                       />
-                       <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <div className="p-8 bg-violet-50/20">
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-xs text-slate-900 font-black uppercase block mb-2">Project Location</label>
+                      <div className="relative">
+                        <input 
+                            type="text" 
+                            className="w-full p-4 bg-white border-2 border-slate-900 rounded-2xl font-black text-black outline-none focus:ring-4 focus:ring-primary/20"
+                            placeholder="Enter site address..."
+                            defaultValue={quote.location || ""}
+                            onBlur={(e) => updateProjectLocation(e.target.value)}
+                        />
+                        <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <label className="text-xs text-slate-400 font-bold uppercase block mb-2">Service Required</label>
-                    <p className="text-slate-900 font-bold flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-primary" /> {quote.service}
-                    </p>
-                  </div>
+                    <div className="p-4 bg-white rounded-2xl border-2 border-slate-900 shadow-sm">
+                      <label className="text-xs text-slate-900 font-black uppercase block mb-2">Service Required</label>
+                      <p className="text-black font-black flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-primary" /> {quote.service}
+                      </p>
+                    </div>
 
-                  <div>
-                    <label className="text-xs text-slate-400 font-bold uppercase block mb-2">Internal Management</label>
-                    <select 
-                      className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
-                      value={quote.assigned_to || ""}
-                      onChange={(e) => {
-                        const staff = staffList.find(s => s.id === e.target.value);
-                        if (staff) assignQuote(staff);
-                      }}
-                    >
-                      <option value="">Unassigned</option>
-                      {staffList.map(staff => (
-                        <option key={staff.id} value={staff.id}>{staff.full_name}</option>
-                      ))}
-                    </select>
+                    <div>
+                      <label className="text-xs text-slate-900 font-black uppercase block mb-2">Internal Management</label>
+                      <select 
+                        className="w-full p-4 bg-white border-2 border-slate-900 rounded-2xl font-black text-black outline-none focus:ring-4 focus:ring-primary/20 appearance-none"
+                        value={quote.assigned_to || ""}
+                        onChange={(e) => {
+                          const staff = staffList.find(s => s.id === e.target.value);
+                          if (staff) assignQuote(staff);
+                        }}
+                      >
+                        <option value="">Unassigned</option>
+                        {staffList.map(staff => (
+                          <option key={staff.id} value={staff.id}>{staff.full_name}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -398,7 +481,7 @@ export default function AdminClientJourney() {
                 <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary" /> Initial Request
                 </h3>
-                <div className="bg-slate-50 p-6 rounded-2xl text-slate-600 text-sm leading-relaxed border border-slate-100 italic">
+                <div className="bg-white p-6 rounded-2xl text-black font-black text-sm leading-relaxed border-2 border-slate-900 shadow-sm italic">
                   "{quote.message}"
                 </div>
               </section>
@@ -466,7 +549,7 @@ function StatusBadge({ status }: { status: any }) {
     converted: 'bg-pink-100 text-pink-700 border-pink-200',
     completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     lost: 'bg-red-100 text-red-700 border-red-200',
-    suspended: 'bg-gray-100 text-gray-400 border-gray-200'
+    suspended: 'bg-gray-100 text-gray-400 border-gray-200 shadow-none grayscale'
   };
 
   const currentStatus = status || 'pending';

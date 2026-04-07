@@ -21,13 +21,6 @@ export default function AdminRegister() {
     setLoading(true);
     setError(null);
 
-    // Restricted emails for admin testing
-    const adminEmails = ['calebendk@gmail.com', 'benjamindonkor@aol.com'];
-    if (!adminEmails.includes(email.toLowerCase())) {
-      setError('Only authorized emails are allowed for administrator registration.');
-      setLoading(false);
-      return;
-    }
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);

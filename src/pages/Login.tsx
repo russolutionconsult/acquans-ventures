@@ -41,15 +41,6 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    // Restricted admin login for testing
-    if (role === 'admin') {
-      const adminEmails = ['calebendk@gmail.com', 'benjamindonkor@aol.com'];
-      if (!adminEmails.includes(email.toLowerCase())) {
-        setError('Only authorized emails are allowed for administrator access.');
-        setLoading(false);
-        return;
-      }
-    }
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
