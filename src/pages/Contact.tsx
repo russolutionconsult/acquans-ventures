@@ -1,20 +1,43 @@
 import { useState } from 'react';
 import { Phone, MapPin, Mail, Send, CheckCircle, ChevronDown } from 'lucide-react';
 import Layout from '@/components/Layout';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function Contact() {
-  const [formData, setFormData] = useState({ name: '', phone: '', service: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', service: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
-    setFormData({ name: '', phone: '', service: '', message: '' });
+    setIsSubmitting(true);
+    
+    try {
+      // 1. Save to Firestore
+      await addDoc(collection(db, 'quotes'), {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        service: formData.service,
+        message: formData.message,
+        status: 'pending',
+        created_at: serverTimestamp()
+      });
+
+      setSubmitted(true);
+      setFormData({ name: '', email: '', phone: '', service: '', message: '' });
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (err) {
+      console.error('Error submitting quote:', err);
+      alert('Failed to send message. Please try again or call us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,6 +98,22 @@ export default function Contact() {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="024 123 4567"
+                    required
+                    className="w-full px-4 py-3.5 rounded-xl border border-border bg-gray-50 text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="kwame@email.com"
                     required
                     className="w-full px-4 py-3.5 rounded-xl border border-border bg-gray-50 text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-white transition-all"
                   />

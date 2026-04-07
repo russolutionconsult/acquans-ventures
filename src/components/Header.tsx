@@ -9,11 +9,14 @@ const navLinks = [
     label: 'Services', 
     path: '/services',
     dropdown: [
-      { label: 'Plumbing Works', path: '/services#plumbing-works' },
-      { label: 'Civil Works', path: '/services#civil-works' },
-      { label: 'Heating Systems', path: '/services#heating-systems' },
-      { label: 'Ventilation & AC', path: '/services#ventilation-air-condition-services' },
-      { label: 'Boiler Installations', path: '/services#boiler-installations' },
+      { label: 'Plumbing Works', path: '/services/plumbing-works' },
+      { label: 'Civil Works', path: '/services/civil-works' },
+      { label: 'Heating Systems', path: '/services/heating-systems' },
+      { label: 'Ventilation & AC', path: '/services/ventilation-ac' },
+      { label: 'Boiler Installations', path: '/services/boiler-installations' },
+      { label: 'Apprenticeship & Training', path: '/services/apprenticeship' },
+      { label: 'Maintenance', path: '/services/maintenance' },
+      { label: 'Consulting', path: '/services/consulting' },
     ]
   },
   { label: 'Projects', path: '/projects' },
@@ -91,13 +94,21 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Request a Quote CTA */}
-          <Link
-            to="/contact"
-            className="hidden lg:flex items-center gap-2 btn-primary py-2.5"
-          >
-            Request a Quote <ArrowRight className="h-4 w-4" />
-          </Link>
+          {/* CTAs */}
+          <div className="hidden lg:flex items-center gap-3">
+            <Link
+              to="/request-quote"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-black text-primary font-bold rounded-lg hover:bg-gray-50 transition-all active:scale-95"
+            >
+              Request For Quotation
+            </Link>
+            <Link
+              to="/login"
+              className="flex items-center gap-2 btn-primary py-2.5"
+            >
+              Login <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
 
           {/* Mobile Toggle */}
           <button
@@ -162,13 +173,20 @@ export default function Header() {
                 );
               })}
             </nav>
-            <div className="mt-4 px-4 pb-2">
+            <div className="mt-4 px-4 pb-2 space-y-3">
               <Link
-                to="/contact"
+                to="/request-quote"
                 onClick={() => setMobileOpen(false)}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-black text-primary font-bold rounded-xl"
               >
-                Request a Quote <ArrowRight className="h-4 w-4" />
+                Request For Quotation
+              </Link>
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+              >
+                Login <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>

@@ -9,11 +9,17 @@ const quickLinks = [
   { label: 'Contact', path: '/contact' },
 ];
 
+const legalLinks = [
+  { label: 'Privacy Policy', path: '/privacy' },
+  { label: 'Terms & Conditions', path: '/terms' },
+  { label: 'Cookie Policy', path: '/cookies' },
+];
+
 export default function Footer() {
   return (
     <footer className="bg-[#0F172A] text-gray-300">
       <div className="container mx-auto px-4 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
             <Link to="/" className="inline-block mb-4">
@@ -33,6 +39,23 @@ export default function Footer() {
             <h4 className="text-base font-bold text-white mb-4">Quick Links</h4>
             <ul className="flex flex-col gap-2">
               {quickLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h4 className="text-base font-bold text-white mb-4">Legal</h4>
+            <ul className="flex flex-col gap-2">
+              {legalLinks.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
@@ -75,8 +98,16 @@ export default function Footer() {
       {/* Copyright */}
       <div className="border-t border-gray-800">
         <div className="container mx-auto px-4 lg:px-8 py-4">
-          <p className="text-center text-xs text-gray-500">
-            © {new Date().getFullYear()} Acquans Ventures. All rights reserved.
+          <p className="text-center text-sm text-gray-500">
+            © {new Date().getFullYear()} Acquans Ventures. All rights reserved. Powered by{' '}
+            <a 
+              href="https://www.russolutionconsult.com" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-white transition-colors"
+            >
+              Russolution Consult
+            </a>
           </p>
         </div>
       </div>

@@ -1,14 +1,16 @@
 import { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Wrench, Building2, Flame, Wind, CircleDot, ArrowRight, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Phone, Wrench, Building2, Flame, Wind, CircleDot, ArrowRight, CheckCircle, Settings } from 'lucide-react';
 import Layout from '@/components/Layout';
 
 const services = [
-  { title: 'Plumbing Works', icon: Wrench, img: '/images/plumbing.png', desc: 'Complete plumbing solutions for residential and commercial projects.' },
-  { title: 'Civil Works', icon: Building2, img: '/images/civil-works.png', desc: 'Structural and civil engineering construction services.' },
-  { title: 'Heating', icon: Flame, img: '/images/heating.png', desc: 'Modern heating system design and installation.' },
-  { title: 'Ventilation & AC', icon: Wind, img: '/images/hvac.png', desc: 'HVAC systems for optimal indoor climate control.' },
-  { title: 'Boiler Installations', icon: CircleDot, img: '/images/boiler.png', desc: 'Industrial and commercial boiler setup and maintenance.' },
+  { title: 'Plumbing Works', icon: Wrench, img: '/images/plumbing-works-industrial.png', path: '/services/plumbing-works', desc: 'Complete plumbing solutions for residential and commercial projects.', color: 'text-blue-600', shadow: 'hover:shadow-blue-100' },
+  { title: 'Civil Works', icon: Building2, img: '/images/civil-works-clean.png', path: '/services/civil-works', desc: 'Structural and civil engineering construction services.', color: 'text-emerald-600', shadow: 'hover:shadow-emerald-100' },
+  { title: 'Heating', icon: Flame, img: '/images/heating-technician.png', path: '/services/heating-systems', desc: 'Modern heating system design and installation.', color: 'text-orange-600', shadow: 'hover:shadow-orange-100' },
+  { title: 'Ventilation & AC', icon: Wind, img: '/images/hvac-technician-rooftop.png', path: '/services/ventilation-ac', desc: 'HVAC systems for optimal indoor climate control.', color: 'text-sky-600', shadow: 'hover:shadow-sky-100' },
+  { title: 'Boiler Installations', icon: CircleDot, img: '/images/boiler-repair-industrial.png', path: '/services/boiler-installations', desc: 'Industrial and commercial boiler setup and maintenance.', color: 'text-slate-700', shadow: 'hover:shadow-slate-200' },
+  { title: 'Maintenance', icon: Settings, img: '/images/maintenance-clean.png', path: '/services/maintenance', desc: 'Preventive and corrective maintenance for all your building systems.', color: 'text-rose-600', shadow: 'hover:shadow-rose-100' },
 ];
 
 const reasons = [
@@ -28,6 +30,27 @@ export default function Home() {
     }
   }, []);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
   return (
     <Layout>
       {/* Hero */}
@@ -45,68 +68,99 @@ export default function Home() {
         <div className="absolute inset-0 hero-overlay" />
         <div className="relative container mx-auto px-4 lg:px-8 py-20 flex items-center justify-center">
           <div className="max-w-3xl text-center mx-auto">
-            <span className="inline-block bg-white/15 border border-white/30 text-white font-semibold text-xs tracking-widest uppercase px-5 py-2 rounded-full mb-4 animate-fade-in-up backdrop-blur-sm">
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-block bg-white/15 border border-white/30 text-white font-semibold text-xs tracking-widest uppercase px-5 py-2 rounded-full mb-4 backdrop-blur-sm"
+            >
               Technical Installation & Building Services
-            </span>
-            <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 animate-fade-in-up"
-              style={{ animationDelay: '0.1s' }}
+            </motion.span>
+            <motion.h1
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6"
             >
               <span className="text-blue-300">Building</span> Quality Projects With <span className="text-blue-300">Excellence</span>
-            </h1>
-            <p
-              className="text-lg text-white/80 mb-8 leading-relaxed animate-fade-in-up"
-              style={{ animationDelay: '0.2s' }}
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg text-white/80 mb-8 leading-relaxed"
             >
               Acquans Ventures delivers professional plumbing, civil works, HVAC, and boiler
               installation services with unmatched quality and reliability.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <Link to="/contact" className="btn-primary px-8 py-3.5 text-base">
-                Get a Quote <ArrowRight className="ml-2 h-4 w-4" />
+            </motion.p>
+            <motion.div 
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-wrap justify-center gap-4"
+            >
+              <Link to="/request-quote" className="btn-primary px-8 py-3.5 text-base">
+                Request For Quotation <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-              <a
-                href="tel:0543861162"
-                className="inline-flex items-center justify-center border-2 border-white/30 text-white font-semibold px-8 py-3.5 rounded-md hover:bg-white/10 transition-colors text-base"
-              >
-                <Phone className="mr-2 h-4 w-4" /> Call Us Now
-              </a>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Services Overview */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-14">
-            <p className="section-label">Our Services</p>
-            <h2 className="section-title">What We Do Best</h2>
+      <section className="py-24 bg-white relative overflow-hidden">
+        {/* Soft background glow */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+        
+        <div className="container relative mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+            >
+              <p className="section-label">Our Services</p>
+              <h2 className="section-title">What We Do Best</h2>
+              <div className="h-1.5 w-20 bg-primary/20 rounded-full mx-auto mt-4" />
+            </motion.div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
             {services.map((s) => (
-              <Link
-                to="/services"
-                key={s.title}
-                className="group rounded-xl overflow-hidden border border-border bg-white hover:shadow-xl transition-all duration-300"
-              >
-                <div className="h-48 overflow-hidden">
-                  <img
-                    src={s.img}
-                    alt={s.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <s.icon className="h-5 w-5 text-primary" />
-                    <h3 className="font-bold text-foreground">{s.title}</h3>
+              <motion.div key={s.title} variants={itemVariants}>
+                <Link
+                  to={s.path}
+                  className={`group block bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 shadow-sm ${s.shadow} hover:-translate-y-2`}
+                >
+                  <div className="h-56 overflow-hidden relative">
+                    <img
+                      src={s.img}
+                      alt={s.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <p className="text-sm text-gray-500">{s.desc}</p>
-                </div>
-              </Link>
+                  <div className="p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-white group-hover:border-transparent transition-all transition-all duration-300">
+                        <s.icon className={`h-6 w-6 ${s.color}`} />
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{s.title}</h3>
+                    </div>
+                    <p className="text-gray-500 text-sm leading-relaxed mb-6">{s.desc}</p>
+                    <div className="flex items-center text-primary font-bold text-sm tracking-tight group-hover:gap-2 transition-all">
+                      Learn More <ArrowRight className="ml-1 h-4 w-4" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -128,12 +182,17 @@ export default function Home() {
               Learn More <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <div className="flex-1">
-            <img
-              src="/images/civil-works.png"
-              alt="Quality civil works"
-              className="rounded-xl shadow-lg w-full max-w-lg mx-auto"
-            />
+          <div className="flex-1 relative">
+            {/* Decorative background accent */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+            
+            <div className="relative p-2 bg-white border border-gray-100 rounded-[2.5rem] shadow-xl overflow-hidden max-w-md mx-auto group">
+              <img
+                src="/images/civil-engineering-rebar-foundation-construction-workers (2).png"
+                alt="Quality civil works"
+                className="rounded-[2rem] w-full h-auto object-cover transition-transform hover:scale-105 duration-700"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -144,22 +203,10 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">
             Ready to Start Your Project?
           </h2>
-          <p className="text-white/80 mb-6">Call us today or send an inquiry.</p>
+          <p className="text-white/80 mb-6 font-medium">Request a free quotation for your next project today.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href="tel:0543861162"
-              className="inline-flex items-center justify-center border-2 border-white/30 text-white font-semibold px-6 py-3 rounded-md hover:bg-white/10 transition-colors text-sm"
-            >
-              <Phone className="mr-2 h-4 w-4" /> 0543861162
-            </a>
-            <a
-              href="tel:0506624555"
-              className="inline-flex items-center justify-center border-2 border-white/30 text-white font-semibold px-6 py-3 rounded-md hover:bg-white/10 transition-colors text-sm"
-            >
-              <Phone className="mr-2 h-4 w-4" /> 0506624555
-            </a>
-            <Link to="/contact" className="btn-white">
-              Send Inquiry <ArrowRight className="ml-2 h-4 w-4" />
+            <Link to="/request-quote" className="btn-white px-8 py-3.5">
+              Request For Quotation <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
         </div>

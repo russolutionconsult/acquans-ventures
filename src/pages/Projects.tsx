@@ -1,12 +1,12 @@
 import Layout from '@/components/Layout';
 
 const projects = [
-  { title: 'Commercial Plumbing Installation', category: 'PLUMBING', img: '/images/project-plumbing.png' },
-  { title: 'Multi-Story Building Construction', category: 'CIVIL WORKS', img: '/images/project-construction.png' },
-  { title: 'Rooftop HVAC System Setup', category: 'HVAC', img: '/images/project-hvac.png' },
-  { title: 'Industrial Boiler Room', category: 'BOILER', img: '/images/project-boiler.png' },
-  { title: 'Engineering Site Project', category: 'CIVIL WORKS', img: '/images/project-engineering.png' },
-  { title: 'Copper Pipe Installation', category: 'PLUMBING', img: '/images/project-copper-pipes.png' },
+  { title: 'Commercial Plumbing Installation', category: 'PLUMBING', img: '/images/project-plumbing-clean.png' },
+  { title: 'Multi-Story Building Construction', category: 'CIVIL WORKS', img: '/images/project-construction-clean.png' },
+  { title: 'Rooftop HVAC System Setup', category: 'HVAC', img: '/images/project-hvac-clean.png' },
+  { title: 'Industrial Boiler Room', category: 'BOILER', img: '/images/project-boiler-clean.png' },
+  { title: 'Engineering Site Project', category: 'CIVIL WORKS', img: '/images/project-engineering-clean.png' },
+  { title: 'Copper Pipe Installation', category: 'PLUMBING', img: '/images/project-copper-pipes-clean.png' },
 ];
 
 const categoryColors: Record<string, string> = {
