@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   BarChart3, LayoutDashboard, Briefcase, MessageSquare, Settings, LogOut,
   Bell, CheckCircle2, Clock, MapPin,
-  Calendar, ShieldCheck, ArrowLeft, Loader2, ExternalLink
+  Calendar, ShieldCheck, ArrowLeft, Loader2, ExternalLink, Mail
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
