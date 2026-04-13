@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ShieldCheck, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
 
 export default function AdminRegister() {
@@ -21,37 +19,40 @@ export default function AdminRegister() {
     setLoading(true);
     setError(null);
 
-    // Restricted emails for admin testing
-    const adminEmails = ['calebendk@gmail.com', 'benjamindonkor@aol.com'];
-    if (!adminEmails.includes(email.toLowerCase())) {
-      setError('Only authorized emails are allowed for administrator registration.');
-      setLoading(false);
-      return;
-    }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, role: 'admin' }
+        }
+      });
 
-      // Send verification email
-      await sendEmailVerification(user);
+      if (signUpError) throw signUpError;
 
-      // Create profile in Firestore
-      await setDoc(doc(db, 'profiles', user.uid), {
+      const user = data.user;
+      if (!user) throw new Error('Registration failed. Please try again.');
+
+      // Create profile in Supabase
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: user.id,
         email,
         full_name: fullName,
         role: 'admin',
         created_at: new Date().toISOString()
       });
 
+      if (profileError) throw profileError;
+
       setSuccess(true);
       setTimeout(() => navigate('/login'), 5000);
     } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
+      if (err.message?.includes('already registered')) {
         setError('This email is already in use.');
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (err.message?.includes('invalid')) {
         setError('Invalid email address.');
-      } else if (err.code === 'auth/weak-password') {
+      } else if (err.message?.includes('password')) {
         setError('Password should be at least 6 characters.');
       } else {
         setError(err.message || 'Failed to register');
@@ -66,7 +67,7 @@ export default function AdminRegister() {
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 relative overflow-hidden bg-[#0F172A]">
         {/* Background blobs for vibrancy */}
         <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
-        
+
         <div className="relative z-10 w-full text-white">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

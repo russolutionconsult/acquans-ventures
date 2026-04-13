@@ -7,7 +7,7 @@ import Layout from '@/components/Layout';
 const services = [
   { title: 'Plumbing Works', icon: Wrench, img: '/images/plumbing-works-industrial.png', path: '/services/plumbing-works', desc: 'Complete plumbing solutions for residential and commercial projects.', color: 'text-blue-600', shadow: 'hover:shadow-blue-100' },
   { title: 'Civil Works', icon: Building2, img: '/images/civil-works-clean.png', path: '/services/civil-works', desc: 'Structural and civil engineering construction services.', color: 'text-emerald-600', shadow: 'hover:shadow-emerald-100' },
-  { title: 'Heating', icon: Flame, img: '/images/heating-technician.png', path: '/services/heating-systems', desc: 'Modern heating system design and installation.', color: 'text-orange-600', shadow: 'hover:shadow-orange-100' },
+  { title: 'Heating', icon: Flame, img: '/images/worker working on heating.jpeg', path: '/services/heating-systems', desc: 'Modern heating system design and installation.', color: 'text-orange-600', shadow: 'hover:shadow-orange-100' },
   { title: 'Ventilation & AC', icon: Wind, img: '/images/hvac-technician-rooftop.png', path: '/services/ventilation-ac', desc: 'HVAC systems for optimal indoor climate control.', color: 'text-sky-600', shadow: 'hover:shadow-sky-100' },
   { title: 'Boiler Installations', icon: CircleDot, img: '/images/boiler-repair-industrial.png', path: '/services/boiler-installations', desc: 'Industrial and commercial boiler setup and maintenance.', color: 'text-slate-700', shadow: 'hover:shadow-slate-200' },
   { title: 'Maintenance', icon: Settings, img: '/images/maintenance-clean.png', path: '/services/maintenance', desc: 'Preventive and corrective maintenance for all your building systems.', color: 'text-rose-600', shadow: 'hover:shadow-rose-100' },

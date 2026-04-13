@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Phone, MapPin, Mail, Send, CheckCircle, ChevronDown } from 'lucide-react';
 import Layout from '@/components/Layout';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', service: '', message: '' });
@@ -16,18 +15,19 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
-      // 1. Save to Firestore
-      await addDoc(collection(db, 'quotes'), {
+      const { error } = await supabase.from('quotes').insert({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         service: formData.service,
         message: formData.message,
         status: 'pending',
-        created_at: serverTimestamp()
+        created_at: new Date().toISOString()
       });
+
+      if (error) throw error;
 
       setSubmitted(true);
       setFormData({ name: '', email: '', phone: '', service: '', message: '' });
@@ -137,8 +137,12 @@ export default function Contact() {
                       <option value="Plumbing Works">Plumbing Works</option>
                       <option value="Civil Works">Civil Works</option>
                       <option value="Heating Systems">Heating Systems</option>
-                      <option value="Ventilation & AC">Ventilation & Air-Condition Services</option>
+                      <option value="Ventilation & AC">Ventilation & Air-Conditioning</option>
                       <option value="Boiler Installations">Boiler Installations</option>
+                      <option value="Apprenticeship & Training">Apprenticeship & Training</option>
+                      <option value="Maintenance">Maintenance</option>
+                      <option value="Consulting">Consulting</option>
+                      <option value="Choice not listed">Choice not listed</option>
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
                   </div>
