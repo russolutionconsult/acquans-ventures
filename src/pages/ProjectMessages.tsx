@@ -6,13 +6,14 @@ import {
   Send,
   Paperclip,
   ArrowLeft,
-  User,
   Clock,
-  CheckCircle2,
   FileText,
   MessageSquare,
   MoreVertical,
-  Loader2
+  Loader2,
+  X,
+  Download,
+  Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,10 +34,14 @@ const ProjectMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [project, setProject] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [role, setRole] = useState<'admin' | 'client' | null>(null);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchUserAndProject = async () => {
@@ -44,10 +49,9 @@ const ProjectMessages = () => {
       if (!user) return;
       setCurrentUser(user);
 
-      // Check if user is admin or client via profiles table
       const { data: profileDoc } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, full_name')
         .eq('id', user.id)
         .single();
 
@@ -77,7 +81,6 @@ const ProjectMessages = () => {
   useEffect(() => {
     if (!quoteId) return;
 
-    // Initial fetch
     const fetchMessages = async () => {
       const { data } = await supabase
         .from('project_messages')
@@ -87,15 +90,12 @@ const ProjectMessages = () => {
 
       if (data) {
         setMessages(data as Message[]);
-        setTimeout(() => {
-          scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+        setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }
     };
 
     fetchMessages();
 
-    // Subscribe to realtime changes
     const channel = supabase
       .channel(`project-messages-${quoteId}`)
       .on('postgres_changes', {
@@ -104,50 +104,132 @@ const ProjectMessages = () => {
         table: 'project_messages',
         filter: `quote_id=eq.${quoteId}`
       }, (payload) => {
-        setMessages(prev => [...prev, payload.new as Message]);
-        setTimeout(() => {
-          scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+        setMessages(prev => {
+          // Avoid duplicates (optimistic update)
+          if (prev.some(m => m.id === (payload.new as Message).id)) return prev;
+          return [...prev, payload.new as Message];
+        });
+        setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [quoteId]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File must be under 10MB');
+        return;
+      }
+      setAttachment(file);
+    }
+  };
+
+  const uploadAttachment = async (file: File): Promise<{ url: string; name: string } | null> => {
+    try {
+      setUploadingFile(true);
+      const ext = file.name.split('.').pop();
+      const path = `${quoteId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from('message-attachments')
+        .upload(path, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('message-attachments')
+        .getPublicUrl(path);
+
+      return { url: publicUrl, name: file.name };
+    } catch (err) {
+      console.error('Upload error:', err);
+      return null;
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !quoteId || !currentUser || !project || !role) return;
+    if ((!newMessage.trim() && !attachment) || !quoteId || !currentUser || !project || !role) return;
 
+    setSending(true);
     try {
+      let attachmentData: { url: string; name: string } | null = null;
+      if (attachment) {
+        attachmentData = await uploadAttachment(attachment);
+      }
+
       const is_admin = role === 'admin';
-      const receiver_id = is_admin ? project.client_id : (project.assigned_to || project.admin_id || null);
+      const receiver_id = is_admin
+        ? project.client_id
+        : (project.assigned_to || null);
 
       const msgData = {
         quote_id: quoteId,
         id_from: currentUser.id,
         id_to: receiver_id,
-        message: newMessage,
-        sender_name: is_admin ? 'Acquans Ventures Admin' : project.name,
+        message: newMessage.trim() || (attachment ? `📎 ${attachment.name}` : ''),
+        sender_name: is_admin ? 'Acquans Ventures Admin' : (project.name || 'Client'),
         sender_role: role,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        ...(attachmentData ? { attachment_url: attachmentData.url, attachment_name: attachmentData.name } : {})
       };
 
-      const { data, error } = await supabase.from('project_messages').insert(msgData).select().single();
+      const { data, error } = await supabase
+        .from('project_messages')
+        .insert(msgData)
+        .select()
+        .single();
 
       if (error) throw error;
 
-      // Add message to local state immediately
+      // Optimistic update — realtime listener will deduplicate
       if (data) {
         setMessages(prev => [...prev, data as Message]);
       }
+
       setNewMessage('');
-      setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      setAttachment(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (err) {
       console.error('Error sending message:', err);
+    } finally {
+      setSending(false);
     }
   };
+
+  const isImageFile = (name?: string) => {
+    if (!name) return false;
+    return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name);
+  };
+
+  const formatTime = (ts: any) => {
+    try {
+      return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch { return ''; }
+  };
+
+  const formatDate = (ts: any) => {
+    try {
+      return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch { return ''; }
+  };
+
+  // Group messages by date
+  const groupedMessages: { date: string; msgs: Message[] }[] = [];
+  messages.forEach((msg) => {
+    const d = formatDate(msg.timestamp);
+    const last = groupedMessages[groupedMessages.length - 1];
+    if (last && last.date === d) {
+      last.msgs.push(msg);
+    } else {
+      groupedMessages.push({ date: d, msgs: [msg] });
+    }
+  });
 
   if (loading) {
     return (
@@ -178,127 +260,223 @@ const ProjectMessages = () => {
     <Layout>
       <div className="min-h-screen bg-[#F8FAFC] pt-24 pb-8">
         <div className="max-w-5xl mx-auto px-4 h-[calc(100vh-140px)] flex flex-col">
-          {/* Header */}
-          <header className="bg-white rounded-t-[32px] border-b border-slate-100 shadow-sm p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-             <div className="flex items-center gap-4">
-                <Link
-                  to={role === 'admin' ? `/admin/client-journey/${quoteId}` : '/client-dashboard'}
-                  className="p-3 bg-blue-600 text-white hover:bg-blue-700 rounded-2xl transition-all shadow-lg"
-                >
-                  <ArrowLeft className="w-6 h-6 stroke-[3]" />
-                </Link>
-                <div>
-                  <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-blue-600" />
-                    Project Communication Hub
-                  </h1>
-                  <p className="text-sm text-slate-500 flex items-center gap-2 font-bold">
-                    <span className="text-blue-600">Re:</span> {project.service} - {project.name}
-                  </p>
-                </div>
-             </div>
 
-             <div className="flex items-center gap-3">
-                <div className="hidden md:flex flex-col text-right">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project ID</span>
-                  <span className="text-xs font-black text-slate-900"># {quoteId?.slice(-6).toUpperCase()}</span>
-                </div>
-                <div className="h-10 w-px bg-slate-100 mx-2" />
-                <button className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-2xl hover:bg-blue-50 transition-all">
-                   <MoreVertical className="w-5 h-5" />
-                </button>
-             </div>
+          {/* Header */}
+          <header className="bg-white rounded-t-[32px] border-b border-slate-100 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Link
+                to={role === 'admin' ? `/admin/client-journey/${quoteId}` : '/client-dashboard'}
+                className="p-3 bg-blue-600 text-white hover:bg-blue-700 rounded-2xl transition-all shadow-lg"
+              >
+                <ArrowLeft className="w-5 h-5 stroke-[3]" />
+              </Link>
+              <div>
+                <h1 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                  Project Communication Hub
+                </h1>
+                <p className="text-sm text-slate-500 flex items-center gap-1.5 font-bold">
+                  <span className="text-blue-600">Re:</span>
+                  {project.service} — {project.name}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex flex-col text-right">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project ID</span>
+                <span className="text-xs font-black text-slate-900"># {quoteId?.slice(-6).toUpperCase()}</span>
+              </div>
+              <div className="h-10 w-px bg-slate-100 mx-2" />
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Live</span>
+              </div>
+              <button className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-2xl hover:bg-blue-50 transition-all">
+                <MoreVertical className="w-5 h-5" />
+              </button>
+            </div>
           </header>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto bg-white p-6 space-y-6 scrollbar-thin scrollbar-thumb-blue-100 scrollbar-track-transparent">
-             <AnimatePresence initial={false}>
-               {messages.length === 0 ? (
-                 <div className="h-full flex flex-col items-center justify-center opacity-40">
-                   <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                     <MessageSquare className="w-10 h-10 text-blue-600" />
-                   </div>
-                   <p className="font-black uppercase tracking-widest text-slate-900 text-xs">Start a conversation</p>
-                 </div>
-               ) : (
-                 messages.map((msg, index) => {
-                   const isMe = msg.id_from === currentUser?.id;
-                   return (
-                     <motion.div
-                       key={msg.id}
-                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                       className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                     >
-                        <div className={`max-w-[80%] md:max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                           <div className={`flex items-center gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                 {msg.sender_name}
-                              </span>
-                              <span className="text-[10px] items-center gap-1 text-slate-400 hidden md:flex">
-                                 <Clock className="w-3 h-3" />
-                                 {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                           </div>
+          <div className="flex-1 overflow-y-auto bg-white p-6 space-y-2 scrollbar-thin scrollbar-thumb-blue-100 scrollbar-track-transparent">
+            <AnimatePresence initial={false}>
+              {messages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center opacity-40 pt-20">
+                  <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare className="w-10 h-10 text-blue-600" />
+                  </div>
+                  <p className="font-black uppercase tracking-widest text-slate-900 text-xs">No messages yet</p>
+                  <p className="text-slate-400 text-xs mt-1">Start the conversation below</p>
+                </div>
+              ) : (
+                groupedMessages.map(({ date, msgs }) => (
+                  <div key={date}>
+                    {/* Date divider */}
+                    <div className="flex items-center gap-3 my-6">
+                      <div className="flex-1 h-px bg-slate-100" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+                        {date}
+                      </span>
+                      <div className="flex-1 h-px bg-slate-100" />
+                    </div>
 
-                           <div className={`p-4 rounded-3xl shadow-sm border ${
-                             isMe
-                               ? 'bg-blue-600 text-white border-blue-500 rounded-tr-none'
-                               : 'bg-white text-slate-900 border-slate-100 rounded-tl-none'
-                           }`}>
-                              <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                    <div className="space-y-4">
+                      {msgs.map((msg) => {
+                        const isMe = msg.id_from === currentUser?.id;
+                        return (
+                          <motion.div
+                            key={msg.id}
+                            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div className={`max-w-[80%] md:max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
+                              <div className={`flex items-center gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                  {isMe ? 'You' : msg.sender_name}
+                                </span>
+                                <span className="text-[10px] text-slate-300 hidden md:block">
+                                  {formatTime(msg.timestamp)}
+                                </span>
+                              </div>
 
-                              {msg.attachment_url && (
-                                <a
-                                  href={msg.attachment_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={`mt-3 flex items-center gap-3 p-3 rounded-2xl text-xs font-bold transition-all ${
-                                    isMe ? 'bg-blue-700/50 hover:bg-blue-800/50' : 'bg-slate-50 hover:bg-slate-100'
-                                  }`}
-                                >
-                                   <div className={`p-2 rounded-xl ${isMe ? 'bg-white/10' : 'bg-blue-600/10 text-blue-600'}`}>
-                                      <FileText className="w-4 h-4" />
-                                   </div>
-                                   <span className="truncate max-w-[150px]">{msg.attachment_name || 'Download Attachment'}</span>
-                                </a>
-                              )}
-                           </div>
-                        </div>
-                     </motion.div>
-                   );
-                 })
-               )}
-               <div ref={scrollRef} />
-             </AnimatePresence>
+                              <div className={`p-4 rounded-3xl shadow-sm ${
+                                isMe
+                                  ? 'bg-blue-600 text-white rounded-tr-none'
+                                  : 'bg-slate-50 text-slate-900 border border-slate-100 rounded-tl-none'
+                              }`}>
+                                {msg.message && msg.message !== `📎 ${msg.attachment_name}` && (
+                                  <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                                )}
+
+                                {msg.attachment_url && (
+                                  <div className="mt-2">
+                                    {isImageFile(msg.attachment_name) ? (
+                                      <a href={msg.attachment_url} target="_blank" rel="noreferrer">
+                                        <img
+                                          src={msg.attachment_url}
+                                          alt={msg.attachment_name}
+                                          className="max-w-full max-h-64 rounded-2xl object-cover border border-white/20 mt-2 hover:opacity-90 transition-opacity"
+                                        />
+                                      </a>
+                                    ) : (
+                                      <a
+                                        href={msg.attachment_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className={`mt-2 flex items-center gap-3 p-3 rounded-2xl text-xs font-bold transition-all ${
+                                          isMe ? 'bg-blue-700/50 hover:bg-blue-800/50' : 'bg-white hover:bg-slate-100 border border-slate-200'
+                                        }`}
+                                      >
+                                        <div className={`p-2 rounded-xl ${isMe ? 'bg-white/10' : 'bg-blue-600/10 text-blue-600'}`}>
+                                          <FileText className="w-4 h-4" />
+                                        </div>
+                                        <span className="truncate max-w-[150px]">{msg.attachment_name || 'Download File'}</span>
+                                        <Download className={`w-4 h-4 ml-auto shrink-0 ${isMe ? 'text-white/70' : 'text-slate-400'}`} />
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className={`flex items-center gap-1 px-1 mt-1 ${isMe ? 'flex-row-reverse' : ''}`}>
+                                <Clock className="w-3 h-3 text-slate-300" />
+                                <span className="text-[10px] text-slate-300 md:hidden">{formatTime(msg.timestamp)}</span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={scrollRef} />
+            </AnimatePresence>
           </div>
 
+          {/* Attachment Preview Banner */}
+          <AnimatePresence>
+            {attachment && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="bg-blue-50 border-t border-blue-100 px-6 py-3 flex items-center gap-3 overflow-hidden"
+              >
+                <div className="p-2 bg-blue-600/10 rounded-xl">
+                  {isImageFile(attachment.name)
+                    ? <ImageIcon className="w-4 h-4 text-blue-600" />
+                    : <FileText className="w-4 h-4 text-blue-600" />
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-900 truncate">{attachment.name}</p>
+                  <p className="text-[10px] text-slate-400">{(attachment.size / 1024).toFixed(1)} KB</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setAttachment(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="p-1.5 hover:bg-blue-100 rounded-xl transition-all text-slate-400 hover:text-red-500"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Input Area */}
-          <footer className="bg-white rounded-b-[32px] border-t border-slate-100 p-6">
-             <form onSubmit={handleSendMessage} className="relative flex items-center gap-4">
-                <button
-                  type="button"
-                  className="p-4 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-2xl hover:bg-blue-50 transition-all"
-                >
-                   <Paperclip className="w-6 h-6" />
-                </button>
+          <footer className="bg-white rounded-b-[32px] border-t border-slate-100 p-5">
+            <form onSubmit={handleSendMessage} className="relative flex items-center gap-3">
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                onChange={handleFileSelect}
+              />
 
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message here..."
-                  className="flex-1 bg-slate-50 border-none rounded-3xl px-6 h-14 text-slate-900 focus:ring-2 focus:ring-blue-600/20 font-medium placeholder:text-slate-400"
-                />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach file (max 10MB)"
+                className={`p-4 rounded-2xl transition-all shrink-0 ${
+                  attachment
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
 
-                <button
-                  type="submit"
-                  disabled={!newMessage.trim()}
-                  className="h-14 w-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:grayscale transition-all shadow-lg shadow-blue-600/30"
-                >
-                   <Send className="w-6 h-6" />
-                </button>
-             </form>
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) handleSendMessage(e as any); }}
+                placeholder={attachment ? 'Add a caption (optional)...' : 'Type your message here...'}
+                className="flex-1 bg-slate-50 border-none rounded-3xl px-6 h-14 text-slate-900 focus:ring-2 focus:ring-blue-600/20 font-medium placeholder:text-slate-400 outline-none"
+              />
+
+              <button
+                type="submit"
+                disabled={(!newMessage.trim() && !attachment) || sending || uploadingFile}
+                className="h-14 w-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:grayscale transition-all shadow-lg shadow-blue-600/30 shrink-0"
+              >
+                {sending || uploadingFile
+                  ? <Loader2 className="w-5 h-5 animate-spin" />
+                  : <Send className="w-5 h-5" />
+                }
+              </button>
+            </form>
+            <p className="text-center text-[10px] text-slate-300 font-medium mt-3 uppercase tracking-widest">
+              Supports images, PDF, Word, Excel · Max 10MB per file
+            </p>
           </footer>
         </div>
       </div>

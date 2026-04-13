@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   BarChart3, LayoutDashboard, Briefcase, MessageSquare, Settings, LogOut,
-  Bell, ChevronRight, CheckCircle2, Clock, MapPin,
-  Calendar, CreditCard, ShieldCheck, ArrowLeft, Mail, Phone, Loader2
+  Bell, CheckCircle2, Clock, MapPin,
+  Calendar, ShieldCheck, ArrowLeft, Loader2, ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -82,14 +82,31 @@ export default function ClientDashboard() {
           setUserProfile({ full_name: 'Client Account', email: '', isAdminViewing: isAdmin, id: targetUid });
         }
 
-        // Fetch Messages
-        const { data: allMsgs } = await supabase
-          .from('messages')
-          .select('*')
-          .order('timestamp', { ascending: false });
+        // Fetch latest project messages across all client's projects
+        const clientQuotesForMsgs = await supabase
+          .from('quotes')
+          .select('id, service, name')
+          .eq('email', profile.email || '');
 
-        if (allMsgs) {
-          setMessages(allMsgs.filter((m: any) => m.receiver_id === targetUid || m.sender_id === targetUid));
+        if (clientQuotesForMsgs.data && clientQuotesForMsgs.data.length > 0) {
+          const quoteIds = clientQuotesForMsgs.data.map((q: any) => q.id);
+          const { data: allMsgs } = await supabase
+            .from('project_messages')
+            .select('*')
+            .in('quote_id', quoteIds)
+            .order('timestamp', { ascending: false });
+
+          if (allMsgs) {
+            // Group & pick latest per quote_id
+            const latestByProject: Record<string, any> = {};
+            allMsgs.forEach((m: any) => {
+              if (!latestByProject[m.quote_id]) {
+                const q = clientQuotesForMsgs.data!.find((x: any) => x.id === m.quote_id);
+                latestByProject[m.quote_id] = { ...m, project_service: q?.service, project_name: q?.name };
+              }
+            });
+            setMessages(Object.values(latestByProject));
+          }
         }
 
       } catch (err) {
@@ -138,20 +155,7 @@ export default function ClientDashboard() {
   }, [navigate]);
 
   useEffect(() => {
-    const markAsRead = async () => {
-      if (activeView === 'messages' && messages.some(m => !m.is_read)) {
-        try {
-          const unreadIds = messages.filter(m => !m.is_read).map(m => m.id);
-          for (const id of unreadIds) {
-            await supabase.from('messages').update({ is_read: true }).eq('id', id);
-          }
-          setMessages(prev => prev.map(m => ({ ...m, is_read: true })));
-        } catch (err) {
-          console.error('Error marking as read:', err);
-        }
-      }
-    };
-    markAsRead();
+    // No-op: message read state managed on ProjectMessages page
   }, [activeView, messages.length]);
 
   const formatDate = (date: any) => {
@@ -331,10 +335,10 @@ export default function ClientDashboard() {
             )}
 
             {activeView === 'messages' && (
-              <div className="space-y-8 max-w-4xl">
+              <div className="space-y-6 max-w-4xl">
                  <div className="border-b border-gray-200 pb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Collaboration Inbox</h1>
-                    <p className="text-gray-500 mt-1">Direct instructions and updates from our management team.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Project Conversations</h1>
+                    <p className="text-gray-500 mt-1">Your real-time messaging threads with our management team.</p>
                  </div>
 
                  <div className="space-y-4">
@@ -343,89 +347,53 @@ export default function ClientDashboard() {
                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                            <MessageSquare className="w-10 h-10 text-gray-200" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">Your inbox is clear</h3>
-                        <p className="text-gray-500 mt-2 max-w-sm mx-auto">Private communications regarding your projects will appear here.</p>
+                        <h3 className="text-xl font-bold text-gray-900">No conversations yet</h3>
+                        <p className="text-gray-500 mt-2 max-w-sm mx-auto">Your project chats will appear here once your service request is active.</p>
                       </div>
                     ) : (
                       messages.map((msg: any) => {
-                        const isSentByMe = msg.sender_id === (userProfile?.id || currentUserId);
-
+                        const isMyMessage = msg.sender_role === 'client';
                         return (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
+                          <Link
                             key={msg.id}
-                            className={`p-8 rounded-[32px] shadow-sm hover:shadow-md transition-all border-2 ${
-                              isSentByMe
-                                ? 'bg-blue-50 border-blue-100 ml-auto max-w-[90%]'
-                                : 'bg-white border-emerald-100 mr-auto max-w-[90%]'
-                            }`}
+                            to={`/messages/${msg.quote_id}`}
+                            className="block p-6 bg-white border-2 border-gray-100 rounded-[24px] hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 group"
                           >
-                            <div className="flex items-center justify-between mb-6">
-                              <div className="flex items-center gap-4">
-                                 <div className={`w-12 h-12 ${isSentByMe ? 'bg-blue-600' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-lg`}>
-                                    {isSentByMe ? <MessageSquare className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
-                                 </div>
-                                 <div>
-                                    <h4 className="font-bold text-gray-900 text-lg">{isSentByMe ? 'You' : msg.sender_name}</h4>
-                                    <p className={`text-[10px] ${isSentByMe ? 'text-blue-600' : 'text-emerald-600'} font-black uppercase tracking-widest`}>
-                                       {isSentByMe ? 'Client Response' : 'Official Management Note'}
+                            <div className="flex items-start justify-between gap-6">
+                              <div className="flex items-start gap-4 flex-1 min-w-0">
+                                <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center shadow-sm ${
+                                  isMyMessage ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
+                                }`}>
+                                  <MessageSquare className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <p className="font-black text-gray-900 text-sm uppercase tracking-wide truncate">
+                                      {msg.project_service || 'Project'}
                                     </p>
-                                 </div>
+                                    {msg.project_name && (
+                                      <span className="text-[10px] font-bold text-slate-400 truncate">· {msg.project_name}</span>
+                                    )}
+                                  </div>
+                                  <p className="text-gray-500 text-sm truncate font-medium">
+                                    <span className={`font-black ${isMyMessage ? 'text-blue-600' : 'text-emerald-600'}`}>
+                                      {isMyMessage ? 'You: ' : `${msg.sender_name}: `}
+                                    </span>
+                                    {msg.attachment_name && !msg.message ? `📎 ${msg.attachment_name}` : msg.message}
+                                  </p>
+                                </div>
                               </div>
-                              <span className="text-xs font-bold text-gray-400">
-                                 {new Date(msg.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-
-                            <div className={`${isSentByMe ? 'bg-white' : 'bg-emerald-50/30'} p-6 rounded-2xl border ${isSentByMe ? 'border-blue-100' : 'border-emerald-50'} text-gray-800 leading-relaxed text-base font-medium`}>
-                               {msg.content}
-                            </div>
-
-                            {!isSentByMe && (
-                              <div className="mt-6 flex flex-col gap-4">
-                                 <textarea
-                                    id={`reply-${msg.id}`}
-                                    placeholder="Type your reply here..."
-                                    className="w-full p-4 bg-white border border-gray-200 rounded-2xl outline-none focus:border-primary transition-all text-sm min-h-[100px]"
-                                 />
-                                 <div className="flex items-center justify-between">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                                       <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 text-emerald-500" /> End-to-end encrypted.
-                                    </p>
-                                    <button
-                                      onClick={async () => {
-                                        const textarea = document.getElementById(`reply-${msg.id}`) as HTMLTextAreaElement;
-                                        if (!textarea?.value.trim()) return;
-
-                                        try {
-                                          const replyData = {
-                                            quote_id: msg.quote_id || '',
-                                            receiver_id: msg.sender_id,
-                                            sender_id: currentUserId,
-                                            sender_name: userProfile?.full_name || 'Client',
-                                            content: textarea.value,
-                                            timestamp: new Date().toISOString(),
-                                            is_read: false
-                                          };
-
-                                          const { error } = await supabase.from('messages').insert(replyData);
-                                          if (error) throw error;
-                                          textarea.value = '';
-                                          alert('Reply sent!');
-                                          setMessages(prev => [{...replyData, id: Math.random().toString()}, ...prev]);
-                                        } catch (err) {
-                                          console.error('Error sending reply:', err);
-                                        }
-                                      }}
-                                      className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all text-xs flex items-center gap-2"
-                                    >
-                                      Send Reply
-                                    </button>
-                                 </div>
+                              <div className="flex flex-col items-end gap-2 shrink-0">
+                                <span className="text-[10px] text-gray-400 font-bold">
+                                  {new Date(msg.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                </span>
+                                <div className="flex items-center gap-1.5 bg-slate-50 group-hover:bg-primary group-hover:text-white text-slate-400 px-3 py-1.5 rounded-xl transition-all">
+                                  <span className="text-[10px] font-black uppercase tracking-widest">Open Chat</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </div>
                               </div>
-                            )}
-                          </motion.div>
+                            </div>
+                          </Link>
                         );
                       })
                     )}

@@ -4,7 +4,7 @@ import {
   ArrowLeft, CheckCircle2, Clock, AlertCircle,
   Mail, Phone, Calendar, Briefcase, Users,
   MapPin, MessageSquare, Heart, Filter,
-  ChevronRight, ExternalLink, ShieldCheck, Loader2, FileText
+  ShieldCheck, Loader2, FileText, ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -40,7 +40,6 @@ export default function AdminClientJourney() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState<Staff[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,51 +64,6 @@ export default function AdminClientJourney() {
       if (error) throw error;
       if (quoteData) {
         setQuote(quoteData as Quote);
-
-        // Setup realtime messages if client exists
-        if (quoteData.client_id) {
-          const { data: { user } } = await supabase.auth.getUser();
-          const adminId = user?.id;
-
-          // Initial fetch
-          const { data: msgs } = await supabase
-            .from('messages')
-            .select('*')
-            .order('timestamp', { ascending: false });
-
-          if (msgs) {
-            const filtered = msgs.filter((m: any) =>
-              (m.sender_id === quoteData.client_id && m.receiver_id === adminId) ||
-              (m.sender_id === adminId && m.receiver_id === quoteData.client_id)
-            );
-            setMessages(filtered);
-          }
-
-          // Subscribe to realtime
-          const channel = supabase
-            .channel(`messages-${id}`)
-            .on('postgres_changes', {
-              event: '*',
-              schema: 'public',
-              table: 'messages'
-            }, async () => {
-              const { data: updatedMsgs } = await supabase
-                .from('messages')
-                .select('*')
-                .order('timestamp', { ascending: false });
-
-              if (updatedMsgs) {
-                const filtered = updatedMsgs.filter((m: any) =>
-                  (m.sender_id === quoteData.client_id && m.receiver_id === adminId) ||
-                  (m.sender_id === adminId && m.receiver_id === quoteData.client_id)
-                );
-                setMessages(filtered);
-              }
-            })
-            .subscribe();
-
-          return () => { supabase.removeChannel(channel); };
-        }
       }
     } catch (err) {
       console.error('Error fetching quote:', err);
@@ -182,27 +136,7 @@ export default function AdminClientJourney() {
     }
   };
 
-  const sendMessageToClient = async (message: string) => {
-    if (!id || !quote || !quote.client_id || !message.trim()) return;
-    try {
-      const messageData = {
-        quote_id: id,
-        receiver_id: quote.client_id,
-        sender_id: currentUserId,
-        sender_name: 'Acquans Ventures Admin',
-        content: message,
-        timestamp: new Date().toISOString(),
-        is_read: false
-      };
 
-      const { error } = await supabase.from('messages').insert(messageData);
-      if (error) throw error;
-      alert('Message sent to client!');
-    } catch (err) {
-      console.error('Error sending message:', err);
-      alert('Failed to send message');
-    }
-  };
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'No Date';
@@ -402,55 +336,28 @@ export default function AdminClientJourney() {
                         <MessageSquare className="w-4 h-4 text-primary" /> Client Communication Hub
                       </p>
 
-                      <div className="space-y-4 mb-8 max-h-[400px] overflow-y-auto p-4 bg-slate-50/50 rounded-3xl border border-slate-100">
-                         {messages.length === 0 ? (
-                           <p className="text-center py-10 text-slate-400 text-xs font-bold uppercase italic">No project history or messages yet.</p>
-                         ) : (
-                           messages.map((msg) => (
-                             <div key={msg.id} className={`flex ${msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}>
-                               <div className={`max-w-[80%] p-4 rounded-2xl ${
-                                 msg.sender_id === currentUserId
-                                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-100 rounded-tr-none'
-                                   : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none'
-                               }`}>
-                                 <p className="text-xs font-bold mb-1 opacity-70">
-                                   {msg.sender_id === currentUserId ? 'You' : msg.sender_name}
-                                 </p>
-                                 <p className="text-sm font-medium">{msg.content}</p>
-                                 <p className="text-[10px] opacity-50 mt-2 text-right">
-                                   {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                 </p>
-                               </div>
-                             </div>
-                           ))
-                         )}
-                      </div>
-                      <div className="bg-emerald-50/30 border border-emerald-100/50 rounded-[24px] p-6">
-                        <textarea
-                            id="client-msg-area"
-                            className="w-full p-4 bg-white border border-emerald-100 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm min-h-[120px] shadow-sm mb-4"
-                            placeholder="Type a message that will appear on this client's portal..."
-                        />
-                        <div className="flex items-center justify-between">
-                            <p className="text-[10px] text-emerald-600/60 font-medium italic max-w-xs">
-                              Messages sent here go directly to the 'Updates' section of the client's private dashboard.
-                            </p>
-                            <button
-                              onClick={() => {
-                                const textarea = document.getElementById('client-msg-area') as HTMLTextAreaElement;
-                                if (textarea && quote.client_id) {
-                                  sendMessageToClient(textarea.value);
-                                  textarea.value = '';
-                                } else {
-                                  alert('This lead has no registered client account yet. Create one from the Dashboard first!');
-                                }
-                              }}
-                              className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all text-xs flex items-center gap-2 shadow-lg shadow-emerald-100"
-                            >
-                              <Mail className="w-4 h-4" /> Post Update
-                            </button>
+                      <Link
+                        to={`/messages/${id}`}
+                        className="group flex items-center justify-between p-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-[24px] shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] transition-all duration-300"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                            <MessageSquare className="w-7 h-7 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-white font-black text-base uppercase tracking-wide">Open Communication Hub</p>
+                            <p className="text-blue-200 text-xs font-bold mt-0.5">Real-time messaging with client · Supports files &amp; images</p>
+                          </div>
                         </div>
-                      </div>
+                        <div className="flex items-center gap-2 bg-white/20 group-hover:bg-white/30 px-5 py-2.5 rounded-2xl transition-all">
+                          <span className="text-white text-xs font-black uppercase tracking-widest">Open</span>
+                          <ExternalLink className="w-4 h-4 text-white" />
+                        </div>
+                      </Link>
+
+                      <p className="text-[10px] text-slate-400 italic mt-3 text-center font-medium">
+                        All messages are project-specific and visible to both admin and client.
+                      </p>
                   </div>
                 </div>
               </section>
