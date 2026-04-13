@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin-dashboard
+Disallow: /admin-register
+Disallow: /admin/
+Disallow: /client-dashboard
+Disallow: /messages/
+Disallow: /login
+
+Sitemap: https://acquansventures.com/sitemap.xml

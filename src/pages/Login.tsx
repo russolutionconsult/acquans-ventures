@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserCircle2, ShieldCheck, ArrowLeft, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
 
 type LoginRole = 'admin' | 'client' | null;
@@ -27,7 +25,8 @@ export default function Login() {
     setError(null);
     setSuccess(null);
     try {
-      await sendPasswordResetEmail(auth, email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
       setSuccess('Password reset email sent! Please check your inbox.');
     } catch (err: any) {
       setError('Failed to send reset email. ' + (err.message || ''));
@@ -43,21 +42,25 @@ export default function Login() {
 
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) throw authError;
 
-      // Get profile from Firestore
-      const profileSnap = await getDoc(doc(db, 'profiles', user.uid));
-      
-      if (!profileSnap.exists()) {
-        await signOut(auth);
+      const user = data.user;
+
+      // Get profile from Supabase
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        await supabase.auth.signOut();
         throw new Error('This account does not have a profile.');
       }
 
-      const profile = profileSnap.data();
-
       if (profile.role !== role) {
-        await signOut(auth);
+        await supabase.auth.signOut();
         throw new Error(`This account is not authorized for ${role} access.`);
       }
 
@@ -67,7 +70,7 @@ export default function Login() {
         navigate('/client-dashboard');
       }
     } catch (err: any) {
-       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+       if (err.message?.includes('Invalid login credentials')) {
         setError('Invalid email or password.');
       } else {
         setError(err.message || 'Failed to login');
@@ -83,7 +86,7 @@ export default function Login() {
         {/* Background blobs for vibrancy */}
         <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-[120px] pointer-events-none" />
-        
+
         <div className="relative z-10 w-full text-white">
           <AnimatePresence mode="wait">
             {!role ? (
@@ -102,14 +105,14 @@ export default function Login() {
                     Which portal would you like to access today?
                   </p>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl mx-auto items-stretch">
                   {/* Admin Login Card */}
                   <motion.div
                     whileHover={{ scale: 1.02, translateY: -4 }}
                     className="flex flex-col bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] overflow-hidden transition-all hover:bg-white/15 hover:border-primary/50 group h-full shadow-2xl"
                   >
-                    <div 
+                    <div
                       className="flex-1 flex flex-col items-center justify-center p-12 cursor-pointer"
                       onClick={() => setRole('admin')}
                     >
@@ -121,7 +124,7 @@ export default function Login() {
                         Access management dashboard, view quotes, and manage clients.
                       </p>
                     </div>
-                    
+
                     {/* Symmetry Footer */}
                     <div className="px-6 py-6 border-t border-white/5 bg-white/5 text-center">
                       <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-extrabold">Authorized Access Only</p>
@@ -133,7 +136,7 @@ export default function Login() {
                     whileHover={{ scale: 1.02, translateY: -4 }}
                     className="flex flex-col bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] overflow-hidden transition-all hover:bg-white/15 hover:border-primary/50 group h-full shadow-2xl"
                   >
-                    <div 
+                    <div
                       className="flex-1 flex flex-col items-center justify-center p-12 cursor-pointer"
                       onClick={() => setRole('client')}
                     >
@@ -145,20 +148,20 @@ export default function Login() {
                         View project status, quotes, and communication history.
                       </p>
                     </div>
-                    
+
                     {/* Unified Footer CTA */}
                     <div className="px-6 py-6 border-t border-white/5 bg-white/5 text-center">
                       <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-extrabold mb-2">New to Acquans?</p>
                       <div className="flex items-center justify-center gap-2 text-sm">
-                        <Link 
-                          to="/request-quote" 
+                        <Link
+                          to="/request-quote"
                           className="text-primary font-bold hover:text-white transition-all hover:underline"
                         >
                           Request For Quotation
                         </Link>
                         <span className="text-white/20 px-1">•</span>
-                        <Link 
-                          to="/contact" 
+                        <Link
+                          to="/contact"
                           className="text-primary font-bold hover:text-white transition-all hover:underline"
                         >
                           Contact Us
@@ -231,7 +234,7 @@ export default function Login() {
                         />
                       </div>
                       <div className="flex justify-end mt-2">
-                        <button 
+                        <button
                           type="button"
                           onClick={handleForgotPassword}
                           className="text-xs font-semibold text-primary/80 hover:text-primary transition-all hover:underline"
@@ -267,8 +270,8 @@ export default function Login() {
                       type="submit"
                       disabled={loading}
                       className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all ${
-                        role === 'admin' 
-                          ? 'bg-primary hover:bg-primary-dark text-white' 
+                        role === 'admin'
+                          ? 'bg-primary hover:bg-primary-dark text-white'
                           : 'bg-secondary hover:bg-secondary-dark text-white'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
@@ -283,8 +286,8 @@ export default function Login() {
                   {role === 'admin' && (
                     <p className="mt-8 text-center text-sm text-white/40">
                       Internal use only. Need access?{' '}
-                      <button 
-                        onClick={() => navigate('/admin-register')} 
+                      <button
+                        onClick={() => navigate('/admin-register')}
                         className="text-primary hover:underline font-medium"
                       >
                         Register here

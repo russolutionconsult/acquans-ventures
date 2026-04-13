@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  BarChart3, Users, MessageSquare, Search, Filter, 
+import {
+  BarChart3, Users, MessageSquare, Search, Filter,
   MoreVertical, CheckCircle2, Clock, AlertCircle, LogOut,
   Mail, Phone, Calendar, Briefcase, ChevronRight, UserPlus,
   Loader2, ExternalLink, Heart, MapPin, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { auth, db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs, doc, updateDoc, setDoc, deleteDoc, onSnapshot, where } from 'firebase/firestore';
-import { signOut, createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
-import { initializeApp, deleteApp } from 'firebase/app';
+import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
-
-let secondaryApp: any;
 
 interface Quote {
   id: string;
@@ -50,7 +45,7 @@ export default function AdminDashboard() {
   const [clientStatus, setClientStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [recentMessages, setRecentMessages] = useState<any[]>([]);
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,27 +54,68 @@ export default function AdminDashboard() {
     fetchClients();
 
     // Listen for recent client replies to admin
-    const msgQ = query(
-      collection(db, 'messages'),
-      where('receiver_id', '==', auth.currentUser?.uid || ''),
-      orderBy('timestamp', 'desc')
-    );
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const unsubscribe = onSnapshot(msgQ, (snapshot) => {
-      const msgs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setRecentMessages(msgs.slice(0, 5)); // Only show last 5
-    });
+      const fetchAllMessages = async () => {
+        // Fetch from both messages and project_messages tables
+        const [directMsgs, projectMsgs] = await Promise.all([
+          supabase
+            .from('messages')
+            .select('*')
+            .eq('receiver_id', user.id)
+            .order('timestamp', { ascending: false })
+            .limit(5),
+          supabase
+            .from('project_messages')
+            .select('*')
+            .neq('id_from', user.id)
+            .order('timestamp', { ascending: false })
+            .limit(5)
+        ]);
 
-    return () => unsubscribe();
+        const combined = [
+          ...(directMsgs.data || []).map((m: any) => ({ ...m, source: 'direct' })),
+          ...(projectMsgs.data || []).map((m: any) => ({
+            id: m.id,
+            sender_name: m.sender_name,
+            content: m.message,
+            timestamp: m.timestamp,
+            is_read: false,
+            quote_id: m.quote_id,
+            source: 'project'
+          }))
+        ]
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .slice(0, 5);
+
+        setRecentMessages(combined);
+      };
+
+      await fetchAllMessages();
+
+      // Subscribe to realtime changes on both tables
+      const channel = supabase
+        .channel('admin-messages')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchAllMessages)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'project_messages' }, fetchAllMessages)
+        .subscribe();
+
+      return () => { supabase.removeChannel(channel); };
+    };
+
+    const cleanup = setupRealtime();
+    return () => { cleanup.then(fn => fn?.()); };
   }, []);
 
   const updateProjectProgress = async (quoteId: string, progress: number) => {
     try {
-      const quoteRef = doc(db, 'quotes', quoteId);
-      await updateDoc(quoteRef, { 
-        manual_progress: progress,
-        last_progress_update: new Date().toISOString()
-      });
+      const { error } = await supabase
+        .from('quotes')
+        .update({ manual_progress: progress, last_progress_update: new Date().toISOString() })
+        .eq('id', quoteId);
+      if (error) throw error;
       setQuotes(quotes.map(q => q.id === quoteId ? { ...q, manual_progress: progress } : q));
     } catch (err) {
       console.error('Error updating progress:', err);
@@ -88,11 +124,11 @@ export default function AdminDashboard() {
 
   const updateProjectInfo = async (quoteId: string, info: string) => {
     try {
-      const quoteRef = doc(db, 'quotes', quoteId);
-      await updateDoc(quoteRef, { 
-        project_info: info,
-        last_info_update: new Date().toISOString()
-      });
+      const { error } = await supabase
+        .from('quotes')
+        .update({ project_info: info, last_info_update: new Date().toISOString() })
+        .eq('id', quoteId);
+      if (error) throw error;
       setQuotes(quotes.map(q => q.id === quoteId ? { ...q, project_info: info } : q));
     } catch (err) {
       console.error('Error updating info:', err);
@@ -101,8 +137,11 @@ export default function AdminDashboard() {
 
   const updateProjectLocation = async (quoteId: string, location: string) => {
     try {
-      const quoteRef = doc(db, 'quotes', quoteId);
-      await updateDoc(quoteRef, { location });
+      const { error } = await supabase
+        .from('quotes')
+        .update({ location })
+        .eq('id', quoteId);
+      if (error) throw error;
       setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, location } : q));
     } catch (err) {
       console.error('Error updating location:', err);
@@ -111,12 +150,13 @@ export default function AdminDashboard() {
 
   const fetchClients = async () => {
     try {
-      const q = query(collection(db, 'profiles'), orderBy('created_at', 'desc'));
-      const querySnapshot = await getDocs(q);
-      const fetchedClients = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter((c: any) => c.role === 'client');
-      setClients(fetchedClients);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'client')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setClients(data || []);
     } catch (err) {
       console.error('Error fetching clients:', err);
     }
@@ -124,12 +164,13 @@ export default function AdminDashboard() {
 
   const fetchStaff = async () => {
     try {
-      const q = query(collection(db, 'profiles'), orderBy('full_name'));
-      const querySnapshot = await getDocs(q);
-      const fetchedStaff = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() } as Staff))
-        .filter(s => s.role === 'admin' || s.role === 'staff');
-      setStaffList(fetchedStaff);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['admin', 'staff'])
+        .order('full_name');
+      if (error) throw error;
+      setStaffList((data || []) as Staff[]);
     } catch (err) {
       console.error('Error fetching staff:', err);
     }
@@ -138,24 +179,12 @@ export default function AdminDashboard() {
   const fetchQuotes = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, 'quotes'));
-      const querySnapshot = await getDocs(q);
-      const fetchedQuotes = querySnapshot.docs.map((doc: any) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          created_at: data.created_at || new Date().toISOString()
-        };
-      }) as Quote[];
-      
-      fetchedQuotes.sort((a, b) => {
-        const dateA = a.created_at?.toDate ? a.created_at.toDate() : new Date(a.created_at);
-        const dateB = b.created_at?.toDate ? b.created_at.toDate() : new Date(b.created_at);
-        return dateB.getTime() - dateA.getTime();
-      });
-      
-      setQuotes(fetchedQuotes);
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setQuotes((data || []) as Quote[]);
     } catch (err) {
       console.error('Error fetching quotes:', err);
     } finally {
@@ -169,50 +198,72 @@ export default function AdminDashboard() {
     setClientStatus(null);
 
     try {
-      const profilesRef = collection(db, 'profiles');
-      const qProfiles = query(profilesRef);
-      const profileSnap = await getDocs(qProfiles);
-      const existingProfile = profileSnap.docs.find(doc => doc.data().email?.toLowerCase() === clientData.email.toLowerCase());
+      // Check if profile already exists
+      const { data: existingProfiles } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('email', clientData.email);
 
       let targetUid = "";
 
-      if (existingProfile) {
-        targetUid = existingProfile.id;
+      if (existingProfiles && existingProfiles.length > 0) {
+        targetUid = existingProfiles[0].id;
         setClientStatus({ type: 'success', message: 'Client already exists! High-speed linking their inquiries now...' });
       } else {
-        const config = auth.app.options;
-        secondaryApp = initializeApp(config, 'SecondaryApp');
-        const secondaryAuth = getAuth(secondaryApp);
-        
-        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, clientData.email, clientData.password);
-        const newUser = userCredential.user;
-        targetUid = newUser.uid;
+        // Save current admin session
+        const { data: { session: adminSession } } = await supabase.auth.getSession();
 
-        await setDoc(doc(db, 'profiles', targetUid), {
+        // Create client account
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: clientData.email,
+          password: clientData.password,
+          options: {
+            data: { full_name: clientData.name, role: 'client' }
+          }
+        });
+
+        if (signUpError) throw signUpError;
+        if (!signUpData.user) throw new Error('Failed to create user');
+
+        targetUid = signUpData.user.id;
+
+        // Restore admin session
+        if (adminSession) {
+          await supabase.auth.setSession({
+            access_token: adminSession.access_token,
+            refresh_token: adminSession.refresh_token
+          });
+        }
+
+        // Create client profile
+        await supabase.from('profiles').insert({
+          id: targetUid,
           email: clientData.email,
           full_name: clientData.name,
           role: 'client',
           created_at: new Date().toISOString()
         });
 
-        await secondaryAuth.signOut();
         setClientStatus({ type: 'success', message: 'New Client account created successfully!' });
       }
 
-      const quotesRef = collection(db, 'quotes');
-      const qQuotes = query(quotesRef);
-      const quoteSnap = await getDocs(qQuotes);
-      const clientQuotes = quoteSnap.docs.filter(doc => doc.data().email?.toLowerCase() === clientData.email.toLowerCase());
-      
-      for (const quoteDoc of clientQuotes) {
-        const updateData: any = { client_id: targetUid };
-        if (quoteDoc.id === clientData.selectedQuoteId && clientData.amount) {
-          updateData.amount = parseFloat(clientData.amount);
-          updateData.status = 'converted';
+      // Link all quotes with this email to this client
+      const { data: clientQuotes } = await supabase
+        .from('quotes')
+        .select('id, email')
+        .ilike('email', clientData.email);
+
+      if (clientQuotes) {
+        for (const quoteDoc of clientQuotes) {
+          const updateData: any = { client_id: targetUid };
+          if (quoteDoc.id === clientData.selectedQuoteId && clientData.amount) {
+            updateData.amount = parseFloat(clientData.amount);
+            updateData.status = 'converted';
+          }
+          await supabase.from('quotes').update(updateData).eq('id', quoteDoc.id);
         }
-        await updateDoc(doc(db, 'quotes', quoteDoc.id), updateData);
       }
-      
+
       setQuotes(prev => prev.map(q => q.email?.toLowerCase() === clientData.email.toLowerCase() ? { ...q, client_id: targetUid } : q));
       setClientData({ name: '', email: '', password: '', amount: '', selectedQuoteId: '' });
       setTimeout(() => setShowCreateClient(false), 3000);
@@ -220,7 +271,6 @@ export default function AdminDashboard() {
     } catch (err: any) {
       setClientStatus({ type: 'error', message: err.message || 'Verification failed' });
     } finally {
-      if (secondaryApp) await deleteApp(secondaryApp);
       setClientLoading(false);
     }
   };
@@ -232,8 +282,8 @@ export default function AdminDashboard() {
 
   const updateQuoteStatus = async (id: string, status: Quote['status']) => {
     try {
-      const quoteRef = doc(db, 'quotes', id);
-      await updateDoc(quoteRef, { status });
+      const { error } = await supabase.from('quotes').update({ status }).eq('id', id);
+      if (error) throw error;
       setQuotes(quotes.map(q => q.id === id ? { ...q, status } : q));
     } catch (err) {
       console.error('Error updating status:', err);
@@ -241,17 +291,12 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     navigate('/login');
   };
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'No Date';
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString('en-GB', {
-        day: '2-digit', month: 'short', year: 'numeric'
-      });
-    }
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) return 'Invalid Date';
@@ -276,9 +321,9 @@ export default function AdminDashboard() {
           <div className="p-6">
             <h2 className="text-xl font-bold text-primary">Admin Panel</h2>
           </div>
-          
+
           <nav className="flex-1 px-4 space-y-2">
-            <button 
+            <button
               onClick={() => setActiveTab('overview')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'overview' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -286,7 +331,7 @@ export default function AdminDashboard() {
             >
               <BarChart3 className="w-5 h-5" /> Overview
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('quotes')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'quotes' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -294,7 +339,7 @@ export default function AdminDashboard() {
             >
               <MessageSquare className="w-5 h-5" /> Project Inquiries
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('projects')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'projects' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -302,7 +347,7 @@ export default function AdminDashboard() {
             >
               <Briefcase className="w-5 h-5" /> Projects
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('clients')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'clients' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -313,7 +358,7 @@ export default function AdminDashboard() {
           </nav>
 
           <div className="p-4 border-t border-white/10">
-            <button 
+            <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
             >
@@ -332,7 +377,7 @@ export default function AdminDashboard() {
                 <p className="text-gray-500 mt-1">Welcome back, Admin. Here's what's happening at Acquans Ventures.</p>
               </div>
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={() => setShowCreateClient(true)}
                   className="btn-primary flex items-center gap-2"
                 >
@@ -368,7 +413,7 @@ export default function AdminDashboard() {
                   <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                       <h2 className="text-xl font-bold text-gray-900">Recent Quote Requests</h2>
-                      <button 
+                      <button
                         onClick={() => setActiveTab('quotes')}
                         className="text-primary hover:underline text-sm font-medium flex items-center gap-1"
                       >
@@ -380,13 +425,14 @@ export default function AdminDashboard() {
                         <thead className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
                           <tr>
                             <th className="px-6 py-4 font-semibold">Client</th>
-                            <th className="px-6 py-4 font-semibold text-right">Action</th>
+                            <th className="px-6 py-4 font-semibold">Service</th>
+                            <th className="px-6 py-4 font-semibold text-right">Status</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {quotes.slice(0, 5).map((quote) => (
-                            <tr 
-                              key={quote.id} 
+                            <tr
+                              key={quote.id}
                               onClick={() => navigate(`/admin/client-journey/${quote.id}`)}
                               className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
                             >
@@ -400,6 +446,11 @@ export default function AdminDashboard() {
                                     <div className="text-xs text-gray-400">{formatDate(quote.created_at)}</div>
                                   </div>
                                 </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                  <Briefcase className="w-4 h-4 text-primary" /> {quote.service}
+                                </span>
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <StatusBadge status={quote.status} />
@@ -429,8 +480,8 @@ export default function AdminDashboard() {
                          </div>
                        ) : (
                          recentMessages.map((msg) => (
-                           <div 
-                              key={msg.id} 
+                           <div
+                              key={msg.id}
                               onClick={() => navigate(`/admin/client-journey/${msg.quote_id}`)}
                               className={`p-4 rounded-2xl border transition-all cursor-pointer hover:border-primary hover:bg-primary/5 ${msg.is_read ? 'bg-gray-50/50 border-gray-100' : 'bg-white border-blue-200 ring-1 ring-blue-100 shadow-sm'}`}
                            >
@@ -456,9 +507,9 @@ export default function AdminDashboard() {
                 <div className="flex flex-col md:flex-row gap-4 justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                    <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input 
-                        type="text" 
-                        placeholder="Search queries..." 
+                      <input
+                        type="text"
+                        placeholder="Search queries..."
                         className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                    </div>
@@ -483,10 +534,10 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     quotes.map((quote) => (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        key={quote.id} 
+                        key={quote.id}
                         className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all group"
                         onClick={() => navigate(`/admin/client-journey/${quote.id}`)}
                       >
@@ -515,21 +566,21 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <div className="flex lg:flex-col gap-2 justify-end lg:justify-start">
-                             <button 
+                             <button
                                onClick={(e) => { e.stopPropagation(); updateQuoteStatus(quote.id, 'reviewed'); }}
                                className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"
                                title="Mark as Reviewed"
                              >
                                 <CheckCircle2 className="w-5 h-5" />
                              </button>
-                             <button 
+                             <button
                                onClick={(e) => { e.stopPropagation(); updateQuoteStatus(quote.id, 'contacted'); }}
                                className="p-3 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-600 hover:text-white transition-all"
                                title="Contacted Client"
                              >
                                 <Phone className="w-5 h-5" />
                              </button>
-                             <button 
+                             <button
                                onClick={(e) => { e.stopPropagation(); navigate(`/admin/client-journey/${quote.id}`); }}
                                className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"
                                title="View Journey"
@@ -544,7 +595,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
-            
+
             {activeTab === 'projects' && (
               <div className="space-y-10">
                 <section>
@@ -560,9 +611,9 @@ export default function AdminDashboard() {
                       quotes
                         .filter(q => ['quoted', 'negotiating', 'converted'].includes(q.status))
                         .map(project => (
-                          <ProjectAdminCard 
-                            key={project.id} 
-                            project={project} 
+                          <ProjectAdminCard
+                            key={project.id}
+                            project={project}
                             onUpdateProgress={updateProjectProgress}
                             onUpdateInfo={updateProjectInfo}
                             onUpdateLocation={updateProjectLocation}
@@ -586,9 +637,9 @@ export default function AdminDashboard() {
                       quotes
                         .filter(q => q.status === 'completed')
                         .map(project => (
-                          <ProjectAdminCard 
-                            key={project.id} 
-                            project={project} 
+                          <ProjectAdminCard
+                            key={project.id}
+                            project={project}
                             onUpdateProgress={updateProjectProgress}
                             onUpdateInfo={updateProjectInfo}
                             onUpdateLocation={updateProjectLocation}
@@ -600,7 +651,7 @@ export default function AdminDashboard() {
                 </section>
               </div>
             )}
-            
+
             {activeTab === 'clients' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -612,10 +663,10 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     clients.map((client) => (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        key={client.id} 
+                        key={client.id}
                         className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 hover:shadow-md transition-all group"
                       >
                         <div className="flex items-center gap-4 mb-6">
@@ -627,7 +678,7 @@ export default function AdminDashboard() {
                             <p className="text-xs text-secondary font-semibold uppercase tracking-wider">Active Client</p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-3 mb-6">
                           <div className="flex items-center gap-3 text-sm text-gray-500">
                             <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors">
@@ -644,7 +695,7 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="flex gap-2">
-                          <button 
+                          <button
                             onClick={() => viewClientPortal(client.id)}
                             className="flex-1 py-3 bg-primary text-white rounded-xl hover:bg-primary-dark transition-all font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-primary/10"
                           >
@@ -666,14 +717,14 @@ export default function AdminDashboard() {
         <AnimatePresence>
           {showCreateClient && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setShowCreateClient(false)}
                 className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
               />
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -686,7 +737,7 @@ export default function AdminDashboard() {
                   <form onSubmit={handleCreateClient} className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Select from Project Requests</label>
-                      <select 
+                      <select
                         required
                         className="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                         onChange={(e) => {
@@ -699,7 +750,7 @@ export default function AdminDashboard() {
                         <option value="">Choose a client...</option>
                         {quotes
                           .filter(q => q.email && q.email.includes('@'))
-                          .filter((q, index, self) => 
+                          .filter((q, index, self) =>
                             index === self.findIndex((t) => t.email === q.email)
                           ).map(q => (
                             <option key={q.id} value={q.id}>{q.name} ({q.email})</option>
@@ -711,18 +762,18 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-gray-400 mb-2">Full Name (Auto)</label>
-                        <input 
+                        <input
                           readOnly
-                          type="text" 
+                          type="text"
                           value={clientData.name}
                           className="w-full px-5 py-3.5 rounded-2xl bg-gray-100 border border-gray-200 text-gray-500 cursor-not-allowed outline-none text-sm"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-400 mb-2">Email (Auto)</label>
-                        <input 
+                        <input
                           readOnly
-                          type="email" 
+                          type="email"
                           value={clientData.email}
                           className="w-full px-5 py-3.5 rounded-2xl bg-gray-100 border border-gray-200 text-gray-500 cursor-not-allowed outline-none text-sm"
                         />
@@ -731,9 +782,9 @@ export default function AdminDashboard() {
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Temporary Password</label>
-                      <input 
+                      <input
                         required
-                        type="password" 
+                        type="password"
                         value={clientData.password}
                         onChange={(e) => setClientData({...clientData, password: e.target.value})}
                         className="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none"
@@ -745,8 +796,8 @@ export default function AdminDashboard() {
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Project Value (Amount in GHS)</label>
                       <div className="relative">
                         <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-400">₵</span>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           step="0.01"
                           value={clientData.amount}
                           onChange={(e) => setClientData({...clientData, amount: e.target.value})}
@@ -766,14 +817,14 @@ export default function AdminDashboard() {
                     )}
 
                     <div className="flex gap-3 pt-4">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setShowCreateClient(false)}
                         className="flex-1 py-4 font-bold text-gray-600 hover:bg-gray-50 rounded-2xl transition-all"
                       >
                         Cancel
                       </button>
-                      <button 
+                      <button
                         disabled={clientLoading}
                         type="submit"
                         className="flex-1 py-4 font-bold bg-primary text-white hover:bg-primary-dark rounded-2xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center"
@@ -830,8 +881,8 @@ function ProjectAdminCard({ project, onUpdateProgress, onUpdateInfo, onUpdateLoc
             <span className={`${style.text}`}>{project.manual_progress || 0}%</span>
           </div>
           <div className="h-3 bg-white/50 rounded-full overflow-hidden p-0.5 border border-white/50">
-            <div 
-              className={`h-full rounded-full ${style.text.replace('text-', 'bg-')} shadow-sm transition-all duration-1000`} 
+            <div
+              className={`h-full rounded-full ${style.text.replace('text-', 'bg-')} shadow-sm transition-all duration-1000`}
               style={{ width: `${project.manual_progress || 0}%` }}
             />
           </div>

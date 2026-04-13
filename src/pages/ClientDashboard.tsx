@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
+import { useNavigate, Link } from 'react-router-dom';
+import {
   BarChart3, LayoutDashboard, Briefcase, MessageSquare, Settings, LogOut,
-  Bell, ChevronRight, CheckCircle2, Clock, MapPin, 
+  Bell, ChevronRight, CheckCircle2, Clock, MapPin,
   Calendar, CreditCard, ShieldCheck, ArrowLeft, Mail, Phone, Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, orderBy, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
 
 interface Project {
@@ -29,17 +27,21 @@ export default function ClientDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState({ active: 0, completed: 0, pending: 0 });
   const [messages, setMessages] = useState<any[]>([]);
-  
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchClientData = async (email: string) => {
       try {
-        const q = query(collection(db, 'quotes'), orderBy('created_at', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const allQuotes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        const clientQuotes = allQuotes.filter((q: any) => q.email?.toLowerCase() === email?.toLowerCase());
+        const { data: allQuotes, error } = await supabase
+          .from('quotes')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const clientQuotes = (allQuotes || []).filter((q: any) => q.email?.toLowerCase() === email?.toLowerCase());
 
         const mappedProjects = clientQuotes
           .filter((q: any) => ['quoted', 'negotiating', 'converted', 'completed'].includes(q.status))
@@ -53,7 +55,7 @@ export default function ClientDashboard() {
             service_type: q.service,
             project_info: q.project_info || ''
           })) as Project[];
-        
+
         setProjects(mappedProjects);
         setStats({
           active: mappedProjects.filter(p => p.status === 'ongoing').length,
@@ -67,21 +69,29 @@ export default function ClientDashboard() {
 
     const fetchProfile = async (targetUid: string, isAdmin: boolean) => {
       try {
-        const profileSnap = await getDoc(doc(db, 'profiles', targetUid));
-        if (profileSnap.exists()) {
-          const data = profileSnap.data();
-          setUserProfile({ ...data, id: targetUid, isAdminViewing: isAdmin });
-          if (data.email) await fetchClientData(data.email);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetUid)
+          .single();
+
+        if (profile) {
+          setUserProfile({ ...profile, isAdminViewing: isAdmin });
+          if (profile.email) await fetchClientData(profile.email);
         } else {
           setUserProfile({ full_name: 'Client Account', email: '', isAdminViewing: isAdmin, id: targetUid });
         }
-        
+
         // Fetch Messages
-        const msgQ = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
-        const msgSnap = await getDocs(msgQ);
-        const allMsgs = msgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setMessages(allMsgs.filter((m: any) => m.receiver_id === targetUid || m.sender_id === targetUid));
-        
+        const { data: allMsgs } = await supabase
+          .from('messages')
+          .select('*')
+          .order('timestamp', { ascending: false });
+
+        if (allMsgs) {
+          setMessages(allMsgs.filter((m: any) => m.receiver_id === targetUid || m.sender_id === targetUid));
+        }
+
       } catch (err) {
         console.error('Error fetching target profile:', err);
       } finally {
@@ -89,39 +99,52 @@ export default function ClientDashboard() {
       }
     };
 
-    const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       const impersonatedId = localStorage.getItem('impersonatedClientId');
+
       if (!user && !impersonatedId) { navigate('/login'); return; }
 
-      let targetUid = user?.uid;
+      let targetUid = user?.id;
       let isAdminMode = false;
+      setCurrentUserId(user?.id || null);
 
       if (user) {
-        const adminSnap = await getDoc(doc(db, 'profiles', user.uid));
-        if (adminSnap.exists() && adminSnap.data().role === 'admin') {
-          if (impersonatedId) {
-            targetUid = impersonatedId;
-            isAdminMode = true;
-          }
+        const { data: adminProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (adminProfile?.role === 'admin' && impersonatedId) {
+          targetUid = impersonatedId;
+          isAdminMode = true;
         }
       } else if (impersonatedId) { navigate('/login'); return; }
 
       if (!targetUid) { navigate('/login'); return; }
       await fetchProfile(targetUid, isAdminMode);
+    };
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session && !localStorage.getItem('impersonatedClientId')) {
+        navigate('/login');
+      }
     });
 
-    return () => unsubscribe();
+    init();
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   useEffect(() => {
     const markAsRead = async () => {
       if (activeView === 'messages' && messages.some(m => !m.is_read)) {
         try {
-          const unreadMsgs = messages.filter(m => !m.is_read);
-          for (const msg of unreadMsgs) {
-            await updateDoc(doc(db, 'messages', msg.id), { is_read: true });
+          const unreadIds = messages.filter(m => !m.is_read).map(m => m.id);
+          for (const id of unreadIds) {
+            await supabase.from('messages').update({ is_read: true }).eq('id', id);
           }
-          // Local state update to reflect instantly
           setMessages(prev => prev.map(m => ({ ...m, is_read: true })));
         } catch (err) {
           console.error('Error marking as read:', err);
@@ -134,7 +157,7 @@ export default function ClientDashboard() {
   const formatDate = (date: any) => {
     if (!date) return 'Recent';
     try {
-      const d = date.toDate ? date.toDate() : new Date(date);
+      const d = new Date(date);
       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     } catch (e) { return 'Recent'; }
   };
@@ -145,7 +168,7 @@ export default function ClientDashboard() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     navigate('/login');
   };
 
@@ -160,7 +183,7 @@ export default function ClientDashboard() {
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
-        
+
         {/* Professional Sidebar */}
         <aside className="w-full lg:w-72 bg-[#1A2332] text-white flex flex-col shrink-0">
           <div className="p-8 border-b border-white/5">
@@ -176,31 +199,31 @@ export default function ClientDashboard() {
           </div>
 
           <nav className="flex-1 p-4 space-y-1">
-            <SidebarItem 
-              active={activeView === 'overview'} 
+            <SidebarItem
+              active={activeView === 'overview'}
               onClick={() => setActiveView('overview')}
-              icon={LayoutDashboard} label="Overview" 
+              icon={LayoutDashboard} label="Overview"
             />
-            <SidebarItem 
-              active={activeView === 'projects'} 
+            <SidebarItem
+              active={activeView === 'projects'}
               onClick={() => setActiveView('projects')}
-              icon={Briefcase} label="Active Projects" 
+              icon={Briefcase} label="Active Projects"
               count={projects.length}
             />
-            <SidebarItem 
-              active={activeView === 'messages'} 
+            <SidebarItem
+              active={activeView === 'messages'}
               onClick={() => setActiveView('messages')}
-              icon={MessageSquare} label="Communications" 
+              icon={MessageSquare} label="Communications"
               count={messages.filter((m: any) => !m.is_read).length}
             />
-            <SidebarItem 
-              active={activeView === 'settings'} 
+            <SidebarItem
+              active={activeView === 'settings'}
               onClick={() => setActiveView('settings')}
-              icon={Settings} label="Account Settings" 
+              icon={Settings} label="Account Settings"
             />
-            
+
             <div className="pt-8 mt-auto px-4">
-              <button 
+              <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 text-white/50 hover:text-red-400 transition-colors w-full py-3 text-sm font-bold"
               >
@@ -212,7 +235,7 @@ export default function ClientDashboard() {
 
         {/* Main Content Content */}
         <main className="flex-1 overflow-y-auto">
-          
+
           {/* Admin Bar */}
           {userProfile?.isAdminViewing && (
             <div className="bg-primary text-white py-3 px-8 flex items-center justify-between shadow-md">
@@ -220,7 +243,7 @@ export default function ClientDashboard() {
                 <ShieldCheck className="w-5 h-5" />
                 <span className="text-sm font-bold">Currently Viewing: {userProfile?.full_name}</span>
               </div>
-              <button 
+              <button
                 onClick={returnToAdmin}
                 className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
               >
@@ -230,7 +253,7 @@ export default function ClientDashboard() {
           )}
 
           <div className="p-8 lg:p-12 max-w-6xl mx-auto space-y-10">
-            
+
             {activeView === 'overview' && (
               <div className="space-y-10">
                 {/* Header Section */}
@@ -325,16 +348,16 @@ export default function ClientDashboard() {
                       </div>
                     ) : (
                       messages.map((msg: any) => {
-                        const isSentByMe = msg.sender_id === (userProfile?.id || auth.currentUser?.uid);
-                        
+                        const isSentByMe = msg.sender_id === (userProfile?.id || currentUserId);
+
                         return (
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             key={msg.id}
                             className={`p-8 rounded-[32px] shadow-sm hover:shadow-md transition-all border-2 ${
-                              isSentByMe 
-                                ? 'bg-blue-50 border-blue-100 ml-auto max-w-[90%]' 
+                              isSentByMe
+                                ? 'bg-blue-50 border-blue-100 ml-auto max-w-[90%]'
                                 : 'bg-white border-emerald-100 mr-auto max-w-[90%]'
                             }`}
                           >
@@ -354,14 +377,14 @@ export default function ClientDashboard() {
                                  {new Date(msg.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                            
+
                             <div className={`${isSentByMe ? 'bg-white' : 'bg-emerald-50/30'} p-6 rounded-2xl border ${isSentByMe ? 'border-blue-100' : 'border-emerald-50'} text-gray-800 leading-relaxed text-base font-medium`}>
                                {msg.content}
                             </div>
-                            
+
                             {!isSentByMe && (
                               <div className="mt-6 flex flex-col gap-4">
-                                 <textarea 
+                                 <textarea
                                     id={`reply-${msg.id}`}
                                     placeholder="Type your reply here..."
                                     className="w-full p-4 bg-white border border-gray-200 rounded-2xl outline-none focus:border-primary transition-all text-sm min-h-[100px]"
@@ -370,26 +393,26 @@ export default function ClientDashboard() {
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
                                        <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 text-emerald-500" /> End-to-end encrypted.
                                     </p>
-                                    <button 
+                                    <button
                                       onClick={async () => {
                                         const textarea = document.getElementById(`reply-${msg.id}`) as HTMLTextAreaElement;
                                         if (!textarea?.value.trim()) return;
-                                        
+
                                         try {
                                           const replyData = {
                                             quote_id: msg.quote_id || '',
-                                            receiver_id: msg.sender_id, // Reply to the sender
-                                            sender_id: auth.currentUser?.uid,
+                                            receiver_id: msg.sender_id,
+                                            sender_id: currentUserId,
                                             sender_name: userProfile?.full_name || 'Client',
                                             content: textarea.value,
                                             timestamp: new Date().toISOString(),
                                             is_read: false
                                           };
-                                          
-                                          await setDoc(doc(collection(db, 'messages')), replyData);
+
+                                          const { error } = await supabase.from('messages').insert(replyData);
+                                          if (error) throw error;
                                           textarea.value = '';
                                           alert('Reply sent!');
-                                          // Refresh messages local state
                                           setMessages(prev => [{...replyData, id: Math.random().toString()}, ...prev]);
                                         } catch (err) {
                                           console.error('Error sending reply:', err);
@@ -419,11 +442,11 @@ export default function ClientDashboard() {
 
 function SidebarItem({ active, icon: Icon, label, onClick, count }: any) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all font-bold text-sm ${
-        active 
-          ? 'bg-primary text-white shadow-lg shadow-primary/10' 
+        active
+          ? 'bg-primary text-white shadow-lg shadow-primary/10'
           : 'text-white/50 hover:bg-white/5 hover:text-white'
       }`}
     >
@@ -481,7 +504,7 @@ function ProjectRow({ project }: { project: Project }) {
         </div>
         <div>
           <h3 className="text-2xl font-bold text-gray-900 group-hover:text-primary transition-colors">{project.name}</h3>
-          
+
           {project.project_info && (
             <div className="mt-4 p-5 bg-white/60 backdrop-blur-sm border-l-4 border-emerald-500 rounded-r-2xl shadow-sm">
               <p className="text-[10px] font-black text-emerald-600 uppercase mb-2 flex items-center gap-2 tracking-widest">
@@ -498,6 +521,12 @@ function ProjectRow({ project }: { project: Project }) {
             <span className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100 shadow-sm">
               <MapPin className="w-4 h-4" /> Site: {project.location || "Setting coordinate..."}
             </span>
+            <Link
+              to={`/messages/${project.id}`}
+              className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-lg border border-blue-100 shadow-sm hover:bg-blue-100 transition-all font-black"
+            >
+              <MessageSquare className="w-4 h-4" /> Message Project Admin
+            </Link>
           </div>
         </div>
       </div>
@@ -508,7 +537,7 @@ function ProjectRow({ project }: { project: Project }) {
           <span className="text-emerald-600 font-black text-sm">{project.progress}%</span>
         </div>
         <div className="h-4 bg-gray-200/50 rounded-full overflow-hidden p-1 border border-gray-100 shadow-inner">
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${project.progress}%` }}
             transition={{ duration: 1.5, ease: "easeOut" }}

@@ -19,7 +19,7 @@ const blogPosts = [
     date: 'March 02, 2026',
     author: 'Ama Osei',
     category: 'Maintenance',
-    image: '/images/boiler.png'
+    image: '/images/boiler-clean.png'
   },
   {
     id: 3,
@@ -28,7 +28,7 @@ const blogPosts = [
     date: 'February 18, 2026',
     author: 'John Doe',
     category: 'Plumbing',
-    image: '/images/plumbing.png'
+    image: '/images/professional-plumbing-works-pipe-installation-construction.jpeg'
   }
 ];
 

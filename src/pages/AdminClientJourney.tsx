@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  ArrowLeft, CheckCircle2, Clock, AlertCircle, 
+import {
+  ArrowLeft, CheckCircle2, Clock, AlertCircle,
   Mail, Phone, Calendar, Briefcase, Users,
-  MapPin, MessageSquare, Heart, Filter, 
+  MapPin, MessageSquare, Heart, Filter,
   ChevronRight, ExternalLink, ShieldCheck, Loader2, FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, collection, query, orderBy, getDocs, setDoc, where, onSnapshot } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
 
 interface Quote {
@@ -42,8 +41,14 @@ export default function AdminClientJourney() {
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    init();
     fetchQuoteData();
     fetchStaff();
   }, [id]);
@@ -51,31 +56,59 @@ export default function AdminClientJourney() {
   const fetchQuoteData = async () => {
     if (!id) return;
     try {
-      const quoteRef = doc(db, 'quotes', id);
-      const quoteSnap = await getDoc(quoteRef);
-      if (quoteSnap.exists()) {
-        const data = { id: quoteSnap.id, ...quoteSnap.data() } as Quote;
-        setQuote(data);
-        
-        // Fetch Real-time messages for this client/quote
-        if (data.client_id) {
-           const msgQ = query(
-             collection(db, 'messages'), 
-             where('receiver_id', 'in', [data.client_id, auth.currentUser?.uid]),
-             orderBy('timestamp', 'desc')
-           );
-           
-           const unsubscribe = onSnapshot(msgQ, (snapshot) => {
-             const msgs = snapshot.docs
-               .map(d => ({ id: d.id, ...d.data() }))
-               .filter((m: any) => 
-                 (m.sender_id === data.client_id && m.receiver_id === auth.currentUser?.uid) ||
-                 (m.sender_id === auth.currentUser?.uid && m.receiver_id === data.client_id)
-               );
-             setMessages(msgs);
-           });
-           
-           return unsubscribe;
+      const { data: quoteData, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      if (quoteData) {
+        setQuote(quoteData as Quote);
+
+        // Setup realtime messages if client exists
+        if (quoteData.client_id) {
+          const { data: { user } } = await supabase.auth.getUser();
+          const adminId = user?.id;
+
+          // Initial fetch
+          const { data: msgs } = await supabase
+            .from('messages')
+            .select('*')
+            .order('timestamp', { ascending: false });
+
+          if (msgs) {
+            const filtered = msgs.filter((m: any) =>
+              (m.sender_id === quoteData.client_id && m.receiver_id === adminId) ||
+              (m.sender_id === adminId && m.receiver_id === quoteData.client_id)
+            );
+            setMessages(filtered);
+          }
+
+          // Subscribe to realtime
+          const channel = supabase
+            .channel(`messages-${id}`)
+            .on('postgres_changes', {
+              event: '*',
+              schema: 'public',
+              table: 'messages'
+            }, async () => {
+              const { data: updatedMsgs } = await supabase
+                .from('messages')
+                .select('*')
+                .order('timestamp', { ascending: false });
+
+              if (updatedMsgs) {
+                const filtered = updatedMsgs.filter((m: any) =>
+                  (m.sender_id === quoteData.client_id && m.receiver_id === adminId) ||
+                  (m.sender_id === adminId && m.receiver_id === quoteData.client_id)
+                );
+                setMessages(filtered);
+              }
+            })
+            .subscribe();
+
+          return () => { supabase.removeChannel(channel); };
         }
       }
     } catch (err) {
@@ -87,12 +120,13 @@ export default function AdminClientJourney() {
 
   const fetchStaff = async () => {
     try {
-      const q = query(collection(db, 'profiles'), orderBy('full_name'));
-      const querySnapshot = await getDocs(q);
-      const fetchedStaff = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() } as Staff))
-        .filter((s: any) => s.role === 'admin' || s.role === 'staff');
-      setStaffList(fetchedStaff);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['admin', 'staff'])
+        .order('full_name');
+      if (error) throw error;
+      setStaffList((data || []) as Staff[]);
     } catch (err) {
       console.error('Error fetching staff:', err);
     }
@@ -101,8 +135,8 @@ export default function AdminClientJourney() {
   const updateQuoteStatus = async (status: Quote['status']) => {
     if (!id || !quote) return;
     try {
-      const quoteRef = doc(db, 'quotes', id);
-      await updateDoc(quoteRef, { status });
+      const { error } = await supabase.from('quotes').update({ status }).eq('id', id);
+      if (error) throw error;
       setQuote({ ...quote, status });
     } catch (err) {
       console.error('Error updating status:', err);
@@ -112,11 +146,11 @@ export default function AdminClientJourney() {
   const assignQuote = async (staff: Staff) => {
     if (!id || !quote) return;
     try {
-      const quoteRef = doc(db, 'quotes', id);
-      await updateDoc(quoteRef, { 
-        assigned_to: staff.id,
-        assigned_name: staff.full_name 
-      });
+      const { error } = await supabase
+        .from('quotes')
+        .update({ assigned_to: staff.id, assigned_name: staff.full_name })
+        .eq('id', id);
+      if (error) throw error;
       setQuote({ ...quote, assigned_to: staff.id, assigned_name: staff.full_name });
     } catch (err) {
       console.error('Error assigning quote:', err);
@@ -126,11 +160,11 @@ export default function AdminClientJourney() {
   const updateProjectProgress = async (progress: number) => {
     if (!id || !quote) return;
     try {
-      const quoteRef = doc(db, 'quotes', id);
-      await updateDoc(quoteRef, { 
-        manual_progress: progress,
-        last_progress_update: new Date().toISOString()
-      });
+      const { error } = await supabase
+        .from('quotes')
+        .update({ manual_progress: progress, last_progress_update: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
       setQuote({ ...quote, manual_progress: progress });
     } catch (err) {
       console.error('Error updating progress:', err);
@@ -140,8 +174,8 @@ export default function AdminClientJourney() {
   const updateProjectLocation = async (location: string) => {
     if (!id || !quote) return;
     try {
-      const quoteRef = doc(db, 'quotes', id);
-      await updateDoc(quoteRef, { location });
+      const { error } = await supabase.from('quotes').update({ location }).eq('id', id);
+      if (error) throw error;
       setQuote({ ...quote, location });
     } catch (err) {
       console.error('Error updating location:', err);
@@ -154,15 +188,15 @@ export default function AdminClientJourney() {
       const messageData = {
         quote_id: id,
         receiver_id: quote.client_id,
-        sender_id: auth.currentUser?.uid,
+        sender_id: currentUserId,
         sender_name: 'Acquans Ventures Admin',
         content: message,
         timestamp: new Date().toISOString(),
         is_read: false
       };
-      
-      const messagesRef = collection(db, 'messages');
-      await setDoc(doc(messagesRef), messageData);
+
+      const { error } = await supabase.from('messages').insert(messageData);
+      if (error) throw error;
       alert('Message sent to client!');
     } catch (err) {
       console.error('Error sending message:', err);
@@ -172,7 +206,6 @@ export default function AdminClientJourney() {
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'No Date';
-    if (timestamp.toDate) return timestamp.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) return 'Invalid Date';
@@ -215,7 +248,7 @@ export default function AdminClientJourney() {
           <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <button 
+                <button
                   onClick={() => navigate('/admin-dashboard')}
                   className="p-3.5 bg-blue-600 text-white hover:bg-blue-700 rounded-2xl transition-all shadow-lg shadow-blue-600/30"
                 >
@@ -233,14 +266,14 @@ export default function AdminClientJourney() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                 <a href={`mailto:${quote.email}`} className="p-3 bg-white border border-slate-200 text-slate-600 rounded-2xl hover:border-primary hover:text-primary transition-all shadow-sm">
+                 <Link to={`/messages/${id}`} className="p-3 bg-white border border-slate-200 text-slate-600 rounded-2xl hover:border-primary hover:text-primary transition-all shadow-sm" title="Project Messaging">
                     <Mail className="w-5 h-5" />
-                 </a>
+                 </Link>
                  <a href={`tel:${quote.phone}`} className="p-3 bg-white border border-slate-200 text-slate-600 rounded-2xl hover:border-primary hover:text-primary transition-all shadow-sm">
                     <Phone className="w-5 h-5" />
                  </a>
                  <div className="h-10 w-px bg-slate-100 mx-2" />
-                 <button 
+                 <button
                    onClick={() => navigate('/admin-dashboard')}
                    className="btn-primary px-8"
                  >
@@ -263,13 +296,13 @@ export default function AdminClientJourney() {
                     </h2>
                     <span className="text-xs font-black text-white uppercase bg-white/30 px-6 py-2 rounded-full border border-white/40 backdrop-blur-xl">Stage: {(quote.status || 'pending').replace('_', ' ')}</span>
                 </div>
-                
+
                 <div className="p-8 bg-blue-50/20">
                   <div className="relative mb-12">
                     <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2" />
-                    <div 
-                        className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 transition-all duration-700" 
-                        style={{ 
+                    <div
+                        className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 transition-all duration-700"
+                        style={{
                           width: (
                             !quote.status || quote.status === 'pending' || quote.status === 'reviewed' ? '12.5%' :
                             quote.status === 'in_review' ? '25%' :
@@ -326,10 +359,10 @@ export default function AdminClientJourney() {
                         <span className="text-sm font-black text-slate-900">Slide to Update Job Status</span>
                         <span className="text-xs text-primary font-black bg-white px-3 py-1 rounded-lg border border-primary/10">Real-time sync</span>
                       </div>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="100" 
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
                         value={quote.manual_progress || 0}
                         onChange={(e) => updateProjectProgress(parseInt(e.target.value))}
                         className="w-full h-4 rounded-full appearance-none cursor-pointer"
@@ -368,20 +401,20 @@ export default function AdminClientJourney() {
                       <p className="text-xs text-slate-900 font-black uppercase mb-4 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4 text-primary" /> Client Communication Hub
                       </p>
-                      
+
                       <div className="space-y-4 mb-8 max-h-[400px] overflow-y-auto p-4 bg-slate-50/50 rounded-3xl border border-slate-100">
                          {messages.length === 0 ? (
                            <p className="text-center py-10 text-slate-400 text-xs font-bold uppercase italic">No project history or messages yet.</p>
                          ) : (
                            messages.map((msg) => (
-                             <div key={msg.id} className={`flex ${msg.sender_id === auth.currentUser?.uid ? 'justify-end' : 'justify-start'}`}>
+                             <div key={msg.id} className={`flex ${msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}>
                                <div className={`max-w-[80%] p-4 rounded-2xl ${
-                                 msg.sender_id === auth.currentUser?.uid 
-                                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-100 rounded-tr-none' 
+                                 msg.sender_id === currentUserId
+                                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-100 rounded-tr-none'
                                    : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none'
                                }`}>
                                  <p className="text-xs font-bold mb-1 opacity-70">
-                                   {msg.sender_id === auth.currentUser?.uid ? 'You' : msg.sender_name}
+                                   {msg.sender_id === currentUserId ? 'You' : msg.sender_name}
                                  </p>
                                  <p className="text-sm font-medium">{msg.content}</p>
                                  <p className="text-[10px] opacity-50 mt-2 text-right">
@@ -393,7 +426,7 @@ export default function AdminClientJourney() {
                          )}
                       </div>
                       <div className="bg-emerald-50/30 border border-emerald-100/50 rounded-[24px] p-6">
-                        <textarea 
+                        <textarea
                             id="client-msg-area"
                             className="w-full p-4 bg-white border border-emerald-100 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm min-h-[120px] shadow-sm mb-4"
                             placeholder="Type a message that will appear on this client's portal..."
@@ -402,7 +435,7 @@ export default function AdminClientJourney() {
                             <p className="text-[10px] text-emerald-600/60 font-medium italic max-w-xs">
                               Messages sent here go directly to the 'Updates' section of the client's private dashboard.
                             </p>
-                            <button 
+                            <button
                               onClick={() => {
                                 const textarea = document.getElementById('client-msg-area') as HTMLTextAreaElement;
                                 if (textarea && quote.client_id) {
@@ -432,14 +465,14 @@ export default function AdminClientJourney() {
                     <MapPin className="w-6 h-6 text-violet-200" /> Site & Logistics
                   </h3>
                 </div>
-                
+
                 <div className="p-8 bg-violet-50/20">
                   <div className="space-y-6">
                     <div>
                       <label className="text-xs text-slate-900 font-black uppercase block mb-2">Project Location</label>
                       <div className="relative">
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             className="w-full p-4 bg-white border-2 border-slate-900 rounded-2xl font-black text-black outline-none focus:ring-4 focus:ring-primary/20"
                             placeholder="Enter site address..."
                             defaultValue={quote.location || ""}
@@ -458,7 +491,7 @@ export default function AdminClientJourney() {
 
                     <div>
                       <label className="text-xs text-slate-900 font-black uppercase block mb-2">Internal Management</label>
-                      <select 
+                      <select
                         className="w-full p-4 bg-white border-2 border-slate-900 rounded-2xl font-black text-black outline-none focus:ring-4 focus:ring-primary/20 appearance-none"
                         value={quote.assigned_to || ""}
                         onChange={(e) => {
@@ -492,7 +525,7 @@ export default function AdminClientJourney() {
                     <AlertCircle className="w-5 h-5" /> Danger Zone
                  </h3>
                  <div className="flex gap-4">
-                    <button 
+                    <button
                       onClick={() => updateQuoteStatus('lost')}
                       className={`flex-1 py-3 text-xs font-bold rounded-xl border-2 transition-all ${
                         quote.status === 'lost' ? 'bg-red-600 border-red-600 text-white' : 'border-red-100 text-red-600 hover:bg-red-600 hover:text-white'
@@ -500,7 +533,7 @@ export default function AdminClientJourney() {
                     >
                       Lost Lead
                     </button>
-                    <button 
+                    <button
                       onClick={() => updateQuoteStatus('suspended')}
                       className={`flex-1 py-3 text-xs font-bold rounded-xl border-2 transition-all ${
                         quote.status === 'suspended' ? 'bg-slate-600 border-slate-600 text-white' : 'border-red-100 text-slate-400 hover:bg-slate-600 hover:text-white'
@@ -529,7 +562,7 @@ function StageButton({ active, icon: Icon, label, color, onClick }: any) {
   };
 
   return (
-    <button 
+    <button
       onClick={onClick}
       className={`px-6 py-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm ${colors[color]}`}
     >

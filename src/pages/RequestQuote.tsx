@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Send, CheckCircle, ChevronDown, User, Mail, Phone, Briefcase, MessageSquare } from 'lucide-react';
 import Layout from '@/components/Layout';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 
 export default function RequestQuote() {
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    email: '', 
-    phone: '', 
-    service: '', 
-    message: '' 
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    service: '',
+    message: ''
   });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,13 +21,15 @@ export default function RequestQuote() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
-      await addDoc(collection(db, 'quotes'), {
+      const { error } = await supabase.from('quotes').insert({
         ...formData,
         status: 'pending',
-        created_at: serverTimestamp()
+        created_at: new Date().toISOString()
       });
+
+      if (error) throw error;
 
       setSubmitted(true);
       setFormData({ name: '', email: '', phone: '', service: '', message: '' });
@@ -58,7 +59,7 @@ export default function RequestQuote() {
             <span className="text-primary">Request For</span> Quotation
           </h1>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Ready to build? Fill out the form below with your project requirements, 
+            Ready to build? Fill out the form below with your project requirements,
             and our technical experts will get back to you with a professional estimate.
           </p>
         </div>
@@ -69,7 +70,7 @@ export default function RequestQuote() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-[40px] shadow-2xl p-8 md:p-16 border border-gray-100 -mt-24 sm:-mt-32 relative z-10">
-              
+
               {submitted ? (
                 <div className="text-center py-12">
                   <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
@@ -77,10 +78,10 @@ export default function RequestQuote() {
                   </div>
                   <h2 className="text-3xl font-extrabold text-gray-900 mb-4">Request Received!</h2>
                   <p className="text-gray-500 text-lg mb-8">
-                    Thank you for reaching out. A member of our technical team will review your project 
+                    Thank you for reaching out. A member of our technical team will review your project
                     details and contact you shortly.
                   </p>
-                  <button 
+                  <button
                     onClick={() => setSubmitted(false)}
                     className="btn-primary px-8 py-4"
                   >
@@ -157,6 +158,10 @@ export default function RequestQuote() {
                           <option value="Heating Systems">Heating Systems</option>
                           <option value="Ventilation & AC">Ventilation & Air-Conditioning</option>
                           <option value="Boiler Installations">Boiler Installations</option>
+                          <option value="Apprenticeship & Training">Apprenticeship & Training</option>
+                          <option value="Maintenance">Maintenance</option>
+                          <option value="Consulting">Consulting</option>
+                          <option value="Choice not listed">Choice not listed</option>
                         </select>
                         <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                       </div>

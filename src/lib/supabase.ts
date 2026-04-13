@@ -4,13 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    'Supabase credentials missing. Please check your .env file and ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.'
-  );
+  console.error("Supabase URL or Anon Key is missing. Please check your .env file and restart the dev server (npm run dev).");
 }
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder-project.supabase.co',
-  supabaseAnonKey || 'placeholder-anon-key'
-);
-
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
