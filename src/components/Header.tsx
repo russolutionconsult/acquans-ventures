@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Phone, Menu, X, ArrowRight, ChevronDown } from 'lucide-react';
+import { technicalServices } from '@/data/services';
 
 const navLinks = [
   { label: 'Overview', path: '/' },
@@ -8,16 +9,7 @@ const navLinks = [
   { 
     label: 'Services', 
     path: '/services',
-    dropdown: [
-      { label: 'Plumbing Works', path: '/services/plumbing-works' },
-      { label: 'Civil Works', path: '/services/civil-works' },
-      { label: 'Heating Systems', path: '/services/heating-systems' },
-      { label: 'Ventilation & AC', path: '/services/ventilation-ac' },
-      { label: 'Boiler Installations', path: '/services/boiler-installations' },
-      { label: 'Apprenticeship & Training', path: '/services/apprenticeship' },
-      { label: 'Maintenance', path: '/services/maintenance' },
-      { label: 'Consulting', path: '/services/consulting' },
-    ]
+    dropdown: technicalServices
   },
   { label: 'Projects', path: '/projects' },
   { label: 'Why Choose Us', path: '/why-choose-us' },
