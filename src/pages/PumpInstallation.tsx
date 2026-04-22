@@ -21,8 +21,8 @@ export default function PumpInstallation() {
       <section className="relative py-24 lg:py-32">
         <div className="absolute inset-0">
           <img
-            src="/images/project-boiler-clean.png"
-            alt="Professional pump installation services"
+            src="/images/pump installation.png"
+            alt="Professional water pump installation"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-slate-900/80" />
@@ -53,8 +53,8 @@ export default function PumpInstallation() {
               <div className="relative group">
                 <div className="absolute -inset-4 bg-primary/5 rounded-[3rem] blur-2xl group-hover:bg-primary/10 transition-colors" />
                 <img 
-                  src="/images/project-boiler-clean.png" 
-                  alt="Industrial Pump Work"
+                  src="/images/pump installation.png" 
+                  alt="Professional Pump Installation"
                   loading="lazy"
                   decoding="async"
                   className="relative rounded-[2.5rem] w-full h-[500px] object-cover shadow-2xl transition-transform duration-700 hover:scale-[1.02]"
