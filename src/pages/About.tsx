@@ -68,6 +68,8 @@ export default function About() {
                 <img
                   src="/images/about-us.png"
                   alt="Acquans Ventures professional workmanship"
+                  loading="lazy"
+                  decoding="async"
                   className="rounded-[2rem] w-full h-auto object-cover max-w-xs mx-auto transition-transform hover:scale-105 duration-700"
                 />
               </div>
