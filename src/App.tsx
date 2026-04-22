@@ -20,6 +20,7 @@ const PumpInstallation = lazy(() => import('@/pages/PumpInstallation'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const WhyChooseUs = lazy(() => import('@/pages/WhyChooseUs'));
 const Blog = lazy(() => import('@/pages/Blog'));
+const BlogDetail = lazy(() => import('@/pages/BlogDetail'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const Login = lazy(() => import('@/pages/Login'));
 const AdminRegister = lazy(() => import('@/pages/AdminRegister'));
@@ -61,6 +62,7 @@ function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/why-choose-us" element={<WhyChooseUs />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/request-quote" element={<RequestQuote />} />
           <Route path="/login" element={<Login />} />

@@ -59,10 +59,22 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   useEffect(() => {
-    const config = seoConfig[location.pathname] || {
-      title: 'Technical Installation & Building Services',
-      description: 'Acquans Ventures provides premium building and technical services in Ghana.'
-    };
+    let config = seoConfig[location.pathname];
+    
+    // Handle dynamic blog post titles
+    if (!config && location.pathname.startsWith('/blog/')) {
+      config = {
+        title: 'Industry Insights & Technical Guides',
+        description: 'Read the latest technical guides, engineering insights, and maintenance tips from the professionals at Acquans Ventures.'
+      };
+    }
+
+    if (!config) {
+      config = {
+        title: 'Technical Installation & Building Services',
+        description: 'Acquans Ventures provides premium building and technical services in Ghana.'
+      };
+    }
 
     // Update Title
     document.title = `${config.title} | Acquans Ventures`;
