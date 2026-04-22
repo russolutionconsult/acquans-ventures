@@ -20,11 +20,13 @@ const navLinks = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const location = useLocation();
 
   // Close dropdowns on route change
   useEffect(() => {
     setDropdownOpen(false);
+    setMobileDropdownOpen(false);
     setMobileOpen(false);
   }, [location]);
 
@@ -144,18 +146,18 @@ export default function Header() {
                   return (
                     <div key={link.path} className="flex flex-col gap-1">
                       <button
-                        onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className={`px-4 py-3 rounded-md text-base font-medium flex items-center justify-between transition-colors ${isActive || dropdownOpen
+                        onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                        className={`px-4 py-3 rounded-md text-base font-medium flex items-center justify-between transition-colors ${isActive || mobileDropdownOpen
                           ? 'text-primary bg-primary/5'
                           : 'text-gray-600 hover:text-primary hover:bg-gray-50'
                           }`}
                       >
                         {link.label}
-                        <ChevronDown className={`h-4 w-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`h-4 w-4 transition-transform ${mobileDropdownOpen ? 'rotate-180' : ''}`} />
                       </button>
                       
                       {/* Mobile Dropdown Sublinks */}
-                      {dropdownOpen && (
+                      {mobileDropdownOpen && (
                         <div className="flex flex-col gap-1 pl-4 border-l-2 border-primary/20 ml-4 mb-2 animate-fade-in">
                           {link.dropdown.map((sublink) => (
                             <Link
@@ -163,7 +165,7 @@ export default function Header() {
                               to={sublink.path}
                               onClick={() => {
                                 setMobileOpen(false);
-                                setDropdownOpen(false);
+                                setMobileDropdownOpen(false);
                               }}
                               className="px-4 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-primary hover:bg-primary/5 transition-colors"
                             >
