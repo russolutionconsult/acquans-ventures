@@ -29,10 +29,10 @@ export default function Blog() {
             {blogPosts.map((post) => (
               <article 
                 key={post.id} 
-                className="bg-white rounded-2xl border border-border shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col"
+                className="bg-white rounded-2xl border border-border shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative"
               >
-                {/* Image */}
-                <div className="h-56 overflow-hidden relative">
+                {/* Image Link */}
+                <Link to={`/blog/${post.id}`} className="block h-56 overflow-hidden relative">
                   <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors duration-500 z-10" />
                   <img 
                     src={post.image} 
@@ -44,10 +44,10 @@ export default function Blog() {
                       {post.category}
                     </span>
                   </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6 md:p-8 flex flex-col flex-grow">
+                </Link>
+                
+                {/* Content Link Area */}
+                <Link to={`/blog/${post.id}`} className="p-6 md:p-8 flex flex-col flex-grow">
                   <div className="flex items-center gap-4 text-xs text-gray-500 font-medium mb-4">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4 text-primary" /> {post.date}
@@ -59,9 +59,7 @@ export default function Blog() {
                   </div>
                   
                   <h2 className="text-xl font-bold text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">
-                    <Link to={`/blog/${post.id}`}>
-                      {post.title}
-                    </Link>
+                    {post.title}
                   </h2>
                   
                   <p className="text-gray-600 mb-6 flex-grow">
@@ -69,14 +67,11 @@ export default function Blog() {
                   </p>
                   
                   <div className="border-t border-border pt-4 mt-auto">
-                    <Link 
-                      to={`/blog/${post.id}`} 
-                      className="inline-flex items-center text-sm font-bold text-primary hover:text-blue-700 transition-colors"
-                    >
+                    <span className="inline-flex items-center text-sm font-bold text-primary group-hover:text-blue-700 transition-colors">
                       Read Article <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    </span>
                   </div>
-                </div>
+                </Link>
               </article>
             ))}
           </div>
