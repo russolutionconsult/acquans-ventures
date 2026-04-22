@@ -4,7 +4,7 @@ import {
   BarChart3, Users, MessageSquare, Search, Filter,
   MoreVertical, CheckCircle2, Clock, AlertCircle, LogOut,
   Mail, Phone, Calendar, Briefcase, ChevronRight, UserPlus,
-  Loader2, ExternalLink, Heart, MapPin, FileText
+  Loader2, ExternalLink, Heart, MapPin, FileText, Menu, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -907,6 +907,22 @@ function ProjectAdminCard({ project, onUpdateProgress, onUpdateInfo, onUpdateLoc
         </div>
       </div>
     </div>
+  );
+}
+
+function SidebarItem({ active, icon: Icon, label, onClick }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-bold text-sm ${
+        active
+          ? 'bg-primary text-white shadow-lg shadow-primary/10'
+          : 'text-white/40 hover:bg-white/5 hover:text-white'
+      }`}
+    >
+      <Icon className="w-5 h-5" />
+      <span>{label}</span>
+    </button>
   );
 }
 
