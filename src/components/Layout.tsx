@@ -37,6 +37,10 @@ const seoConfig: Record<string, { title: string; description: string }> = {
     title: 'Ventilation & Air-Conditioning (HVAC) Experts',
     description: 'Precision climate control solutions including energy-efficient split units, industrial VRF systems, and clean room ventilation.'
   },
+  '/services/pump-installation': {
+    title: 'Professional Pump Installation & Maintenance',
+    description: 'Expert water pump solutions for domestic supply and industrial water management across Ghana.'
+  },
   '/projects': {
     title: 'Our Projects | Proven Track Record of Excellence',
     description: 'Explore our portfolio of completed works across various sectors, demonstrating our engineering precision and commitment to quality.'

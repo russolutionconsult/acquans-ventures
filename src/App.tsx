@@ -16,6 +16,7 @@ const BoilerInstallations = lazy(() => import('@/pages/BoilerInstallations'));
 const Apprenticeship = lazy(() => import('@/pages/Apprenticeship'));
 const Maintenance = lazy(() => import('@/pages/Maintenance'));
 const Consulting = lazy(() => import('@/pages/Consulting'));
+const PumpInstallation = lazy(() => import('@/pages/PumpInstallation'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const WhyChooseUs = lazy(() => import('@/pages/WhyChooseUs'));
 const Blog = lazy(() => import('@/pages/Blog'));
@@ -56,6 +57,7 @@ function App() {
           <Route path="/services/apprenticeship" element={<Apprenticeship />} />
           <Route path="/services/maintenance" element={<Maintenance />} />
           <Route path="/services/consulting" element={<Consulting />} />
+          <Route path="/services/pump-installation" element={<PumpInstallation />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/why-choose-us" element={<WhyChooseUs />} />
           <Route path="/blog" element={<Blog />} />

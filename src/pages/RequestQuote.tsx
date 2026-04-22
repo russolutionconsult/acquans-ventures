@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Send, CheckCircle, ChevronDown, User, Mail, Phone, Briefcase, MessageSquare } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { supabase } from '@/lib/supabase';
+import { technicalServices } from '@/data/services';
 
 export default function RequestQuote() {
   const [formData, setFormData] = useState({
@@ -153,14 +154,9 @@ export default function RequestQuote() {
                           className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all appearance-none"
                         >
                           <option value="" disabled>Choose a service...</option>
-                          <option value="Plumbing Works">Plumbing Works</option>
-                          <option value="Civil Works">Civil Works</option>
-                          <option value="Heating Systems">Heating Systems</option>
-                          <option value="Ventilation & AC">Ventilation & Air-Conditioning</option>
-                          <option value="Boiler Installations">Boiler Installations</option>
-                          <option value="Apprenticeship & Training">Apprenticeship & Training</option>
-                          <option value="Maintenance">Maintenance</option>
-                          <option value="Consulting">Consulting</option>
+                          {technicalServices.map((s) => (
+                            <option key={s.path} value={s.label}>{s.label}</option>
+                          ))}
                           <option value="Choice not listed">Choice not listed</option>
                         </select>
                         <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
