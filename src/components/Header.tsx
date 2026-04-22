@@ -50,6 +50,8 @@ export default function Header() {
             <img
               src="/images/Acquans Ventures Official Logo.png"
               alt="Acquans Ventures"
+              width="160"
+              height="64"
               className="h-12 lg:h-16 w-auto"
             />
           </Link>

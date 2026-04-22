@@ -233,9 +233,10 @@ export default function AdminClientJourney() {
 
                 <div className="p-8 bg-blue-50/20">
                   <div className="relative mb-12">
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2" />
+                    {/* Desktop Connector Line */}
+                    <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 hidden md:block" />
                     <div
-                        className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 transition-all duration-700"
+                        className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 transition-all duration-700 hidden md:block"
                         style={{
                           width: (
                             !quote.status || quote.status === 'pending' || quote.status === 'reviewed' ? '12.5%' :
@@ -248,7 +249,9 @@ export default function AdminClientJourney() {
                           )
                         }}
                     />
-                    <div className="relative flex justify-between">
+                    
+                    {/* Status Steps */}
+                    <div className="relative grid grid-cols-2 sm:grid-cols-4 md:flex md:justify-between gap-6 md:gap-0">
                         {['pending', 'in_review', 'contacted', 'quoted', 'negotiating', 'converted', 'completed'].map((stage, i) => (
                           <div key={stage} className="flex flex-col items-center gap-3">
                             <div className={`w-10 h-10 rounded-full border-4 ${
@@ -256,7 +259,7 @@ export default function AdminClientJourney() {
                             } flex items-center justify-center transition-all z-10 shadow-lg`}>
                                 <CheckCircle2 className="w-5 h-5" />
                             </div>
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${quote.status === stage ? 'text-blue-800' : 'text-slate-900'}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest text-center ${quote.status === stage ? 'text-blue-800' : 'text-slate-900'}`}>
                                 {stage.replace('_', ' ')}
                             </span>
                           </div>

@@ -259,25 +259,25 @@ const ProjectMessages = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-[#F8FAFC] pt-24 pb-8">
-        <div className="max-w-5xl mx-auto px-4 h-[calc(100vh-140px)] flex flex-col">
+        <div className="max-w-5xl mx-auto px-0 md:px-4 h-[calc(100dvh-160px)] md:h-[calc(100vh-140px)] flex flex-col">
 
           {/* Header */}
-          <header className="bg-white rounded-t-[32px] border-b border-slate-100 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <header className="bg-white rounded-none md:rounded-t-[32px] border-b border-slate-100 shadow-sm p-4 md:p-5 flex flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
               <Link
                 to={role === 'admin' ? `/admin/client-journey/${quoteId}` : '/client-dashboard'}
-                className="p-3 bg-blue-600 text-white hover:bg-blue-700 rounded-2xl transition-all shadow-lg"
+                className="p-2.5 md:p-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl md:rounded-2xl transition-all shadow-lg shrink-0"
               >
-                <ArrowLeft className="w-5 h-5 stroke-[3]" />
+                <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 stroke-[3]" />
               </Link>
-              <div>
-                <h1 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-blue-600" />
-                  Project Communication Hub
+              <div className="overflow-hidden">
+                <h1 className="text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2 truncate">
+                  <span className="hidden sm:inline"><MessageSquare className="w-5 h-5 text-blue-600" /></span>
+                  Communication Hub
                 </h1>
-                <p className="text-sm text-slate-500 flex items-center gap-1.5 font-bold">
+                <p className="text-[10px] md:text-sm text-slate-500 flex items-center gap-1.5 font-bold truncate">
                   <span className="text-blue-600">Re:</span>
-                  {project.service} — {project.name}
+                  {project.name}
                 </p>
               </div>
             </div>
