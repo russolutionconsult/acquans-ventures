@@ -132,3 +132,7 @@ body {
 .prose blockquote {
   @apply border-l-4 border-primary pl-6 my-8 italic text-slate-700 text-xl;
 }
+
+.prose a {
+  @apply text-blue-600 font-bold underline hover:text-blue-800 transition-colors;
+}
