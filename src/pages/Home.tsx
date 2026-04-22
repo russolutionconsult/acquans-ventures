@@ -61,6 +61,7 @@ export default function Home() {
           loop
           muted
           playsInline
+          poster="/images/civil-engineering-rebar-foundation-construction-workers.png"
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/images/Acquans Ventures homepage video.mp4" type="video/mp4" />

@@ -46,7 +46,12 @@ export default function AdminDashboard() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [recentMessages, setRecentMessages] = useState<any[]>([]);
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [activeTab]);
 
   useEffect(() => {
     fetchQuotes();
@@ -315,60 +320,82 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+        {/* Mobile Header Toggle */}
+        <div className="lg:hidden bg-[#0F172A] p-4 flex items-center justify-between sticky top-[72px] z-40 border-b border-white/5 shadow-lg">
+          <h2 className="text-white font-bold tracking-widest text-xs uppercase flex items-center gap-2">
+            <span className="w-2 h-2 bg-primary rounded-full animate-pulse" /> Admin Console
+          </h2>
+          <button 
+            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+            className="p-2 bg-white/5 rounded-lg text-white"
+          >
+            {mobileSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
         {/* Sidebar */}
-        <aside className="w-64 bg-[#0F172A] text-white hidden lg:flex flex-col sticky top-[72px] h-[calc(100vh-72px)]">
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-primary">Admin Panel</h2>
-          </div>
+        <AnimatePresence>
+          {(mobileSidebarOpen || window.innerWidth >= 1024) && (
+            <motion.aside 
+              initial={{ x: -300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -300, opacity: 0 }}
+              className={`w-64 bg-[#0F172A] text-white flex flex-col fixed lg:sticky top-[72px] h-[calc(100vh-72px)] z-50 lg:z-30 transition-all ${!mobileSidebarOpen && 'hidden lg:flex'}`}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-primary">Admin Panel</h2>
+              </div>
 
-          <nav className="flex-1 px-4 space-y-2">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'overview' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <BarChart3 className="w-5 h-5" /> Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('quotes')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'quotes' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <MessageSquare className="w-5 h-5" /> Project Inquiries
-            </button>
-            <button
-              onClick={() => setActiveTab('projects')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'projects' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Briefcase className="w-5 h-5" /> Projects
-            </button>
-            <button
-              onClick={() => setActiveTab('clients')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'clients' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Users className="w-5 h-5" /> Clients
-            </button>
-          </nav>
+              <nav className="flex-1 px-4 space-y-2">
+                <SidebarItem 
+                  icon={BarChart3} 
+                  label="Overview" 
+                  active={activeTab === 'overview'} 
+                  onClick={() => setActiveTab('overview')} 
+                />
+                <SidebarItem 
+                  icon={MessageSquare} 
+                  label="Project Inquiries" 
+                  active={activeTab === 'quotes'} 
+                  onClick={() => setActiveTab('quotes')} 
+                />
+                <SidebarItem 
+                  icon={Briefcase} 
+                  label="Projects" 
+                  active={activeTab === 'projects'} 
+                  onClick={() => setActiveTab('projects')} 
+                />
+                <SidebarItem 
+                  icon={Users} 
+                  label="Clients" 
+                  active={activeTab === 'clients'} 
+                  onClick={() => setActiveTab('clients')} 
+                />
+              </nav>
 
-          <div className="p-4 border-t border-white/10">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
-            >
-              <LogOut className="w-5 h-5" /> Logout
-            </button>
-          </div>
-        </aside>
+              <div className="p-4 border-t border-white/10">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all font-bold text-sm"
+                >
+                  <LogOut className="w-5 h-5" /> Logout
+                </button>
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
+        {/* Sidebar Overlay */}
+        {mobileSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+        )}
 
         {/* Main Content */}
-        <main className="flex-1 p-8 lg:p-12 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -420,45 +447,28 @@ export default function AdminDashboard() {
                         View all <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
-                          <tr>
-                            <th className="px-6 py-4 font-semibold">Client</th>
-                            <th className="px-6 py-4 font-semibold">Service</th>
-                            <th className="px-6 py-4 font-semibold text-right">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {quotes.slice(0, 5).map((quote) => (
-                            <tr
-                              key={quote.id}
-                              onClick={() => navigate(`/admin/client-journey/${quote.id}`)}
-                              className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
-                            >
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                    {quote.name[0]}
-                                  </div>
-                                  <div>
-                                    <div className="font-bold text-gray-900 line-clamp-1">{quote.name}</div>
-                                    <div className="text-xs text-gray-400">{formatDate(quote.created_at)}</div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                  <Briefcase className="w-4 h-4 text-primary" /> {quote.service}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <StatusBadge status={quote.status} />
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="p-4 space-y-4">
+                      {quotes.slice(0, 5).map((quote) => (
+                        <div
+                          key={quote.id}
+                          onClick={() => navigate(`/admin/client-journey/${quote.id}`)}
+                          className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:border-primary/30 transition-all cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                              {quote.name[0]}
+                            </div>
+                            <div>
+                               <p className="text-sm font-bold text-gray-900 line-clamp-1">{quote.name}</p>
+                               <p className="text-[10px] text-gray-400 font-medium">{formatDate(quote.created_at)}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="hidden sm:block text-xs font-bold text-gray-500">{quote.service}</span>
+                            <StatusBadge status={quote.status} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
