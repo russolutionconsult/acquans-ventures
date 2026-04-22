@@ -57,6 +57,14 @@ export const blogPosts: BlogPost[] = [
 <p>If you are planning a new construction project or looking to renovate an existing building, it is vital to think long-term. A cheap AC system might save you money on the day you buy it, but it will cost you far more in repairs and electricity over the next few years. In the Ghanaian market, reputation is everything. A building known for having the best, most comfortable climate will always attract the best tenants.</p>
 
 <p>The future of HVAC isn’t just about making things colder; it’s about making them smarter, healthier, and cheaper to run. By investing in VRF technology, smart sensors, and advanced filtration today, you are future-proofing your property and ensuring it remains a productive environment for decades to come.</p>
+
+<h2>External Credible Resources</h2>
+<p>For more information on commercial HVAC standards and energy efficiency, we recommend the following professional resources:</p>
+<ul>
+  <li><a href="https://www.ashrae.org/" target="_blank" rel="noopener">ASHRAE (American Society of Heating, Refrigerating and Air-Conditioning Engineers)</a> - The leading global authority on HVAC standards.</li>
+  <li><a href="https://www.energy.gov/eere/buildings/commercial-buildings-integration" target="_blank" rel="noopener">U.S. Department of Energy (Commercial Buildings)</a> - Detailed guides on commercial energy efficiency.</li>
+  <li><a href="https://www.epa.gov/indoor-air-quality-iaq" target="_blank" rel="noopener">Environmental Protection Agency (Indoor Air Quality)</a> - Scientific information on maintaining healthy indoor air.</li>
+</ul>
     `
   },
   {
@@ -103,6 +111,14 @@ export const blogPosts: BlogPost[] = [
 
 <h2>A Proactive Approach to Longevity</h2>
 <p>Managing an industrial boiler is a marathon, not a sprint. Consistency is the key. Make a simple daily, weekly, and monthly checklist: Test the water, tune the burner, look for leaks, and verify the safety valves. If you follow these steps every week, your boiler will be a reliable, safe, and cost-effective asset for your company for many decades to come.</p>
+
+<h2>External Credible Resources</h2>
+<p>Learn more about boiler safety and engineering standards from these international bodies:</p>
+<ul>
+  <li><a href="https://www.asme.org/" target="_blank" rel="noopener">ASME (American Society of Mechanical Engineers)</a> - The global standard for boiler and pressure vessel codes.</li>
+  <li><a href="https://www.engineeringtoolbox.com/boilers-t_28.html" target="_blank" rel="noopener">The Engineering ToolBox (Boilers)</a> - Technical data and formulas for boiler system design.</li>
+  <li><a href="https://www.osha.gov/oat/otm/otm_iv/otm_iv_1.html" target="_blank" rel="noopener">OSHA (Boiler Safety)</a> - Official guidelines for operational safety and hazard prevention.</li>
+</ul>
     `
   },
   {
@@ -147,6 +163,14 @@ export const blogPosts: BlogPost[] = [
 
 <h2>Investing in Peace of Mind</h2>
 <p>The plumbing of your building is like the veins in a human body—it must work perfectly 24 hours a day. Cutting corners on piping materials might save 5% on the construction cost today, but one major leak in a finished building can cause ten times that amount in damage to ceilings, expensive floors, and electrical equipment. At Acquans Ventures, we help you pick the right balance of materials to ensure your plumbing is the hidden hero of your building, working silently and reliably for decades to come. Quality materials combined with expert installation is the only way to build for the future.</p>
+
+<h2>External Credible Resources</h2>
+<p>For more technical details on plumbing codes and material standards, visit these professional organizations:</p>
+<ul>
+  <li><a href="https://www.iapmo.org/" target="_blank" rel="noopener">IAPMO (International Association of Plumbing and Mechanical Officials)</a> - The authority on plumbing and mechanical codes.</li>
+  <li><a href="https://www.copper.org/" target="_blank" rel="noopener">Copper Development Association</a> - Comprehensive resources for copper piping and installation.</li>
+  <li><a href="https://www.plasticpipe.org/" target="_blank" rel="noopener">Plastic Pipe Institute</a> - The latest research on PEX, PVC, and other polymer piping.</li>
+</ul>
     `
   }
 ];
