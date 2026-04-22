@@ -1,119 +1,152 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, Wind } from 'lucide-react';
+import { ArrowRight, CheckCircle, Wind, ShieldCheck } from 'lucide-react';
 import Layout from '@/components/Layout';
 
-const offerings = [
-  'Air-conditioning system design & installation',
-  'Ventilation ductwork fabrication & fitting',
-  'Chiller & split-unit installation',
-  'Indoor air quality assessment & improvement',
-  'System maintenance, servicing & repairs',
-  'Energy-efficient climate control solutions',
+const domesticServices = [
+  'Energy-efficient split AC installations',
+  'Home HRV & fresh air ventilation',
+  'Kitchen & bathroom extraction systems',
+  'Portable cooling & dehumidifier solutions',
+  'Smart AC control & WiFi integration',
+  'Residential filter replacement & servicing',
 ];
 
-const sectors = [
-  { name: 'Commercial Offices', desc: 'Comfortable working environments that boost productivity.' },
-  { name: 'Hotels & Hospitality', desc: 'Guest comfort through reliable climate control.' },
-  { name: 'Hospitals & Clinics', desc: 'Clean air and precise temperature management.' },
-  { name: 'Industrial Facilities', desc: 'Ventilation solutions for factories and warehouses.' },
+const industrialServices = [
+  'Large-scale VRF/VRV system design',
+  'Fabrication of industrial ventilation ducts',
+  'Rooftop Unit (RTU) & Chiller plant setup',
+  'Clean room & laboratory climate control',
+  'Warehouse & factory exhaust systems',
+  'HVAC energy-audits & system retrofitting',
 ];
 
 export default function VentilationAC() {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative py-20 lg:py-28">
+      <section className="relative py-24 lg:py-32">
         <div className="absolute inset-0">
           <img
             src="/images/hvac.png"
             alt="HVAC system installation"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gray-900/75" />
+          <div className="absolute inset-0 bg-slate-900/80" />
         </div>
-        <div className="relative container mx-auto px-4 lg:px-8 text-center">
+        <div className="relative container mx-auto px-4 lg:px-12 text-center">
           <div className="max-w-3xl mx-auto">
-            <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">
-              Ventilation & Air-Conditioning
-            </p>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
-              Optimal Indoor Climate, Every Season
+            <div className="inline-flex items-center gap-2 bg-primary/20 backdrop-blur-sm text-primary-light text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full mb-6 border border-primary/30">
+              <Wind className="h-4 w-4" /> Climate Control
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+              Precision Air Solutions for <span className="text-primary-light">Industrial</span> & <span className="text-primary-light">Domestic</span> Spaces
             </h1>
-            <p className="text-white/80 text-lg leading-relaxed">
-              Our HVAC team delivers expert ventilation and air-conditioning services — 
-              from system design and installation to ongoing maintenance — ensuring 
-              comfort and air quality across all building types.
+            <p className="text-white/80 text-lg md:text-xl leading-relaxed mb-8">
+              We design, install, and maintain high-performance HVAC systems that ensure 
+              optimal air quality and temperature management across all environments.
             </p>
           </div>
         </div>
       </section>
 
-      {/* What We Offer */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-12">
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-2 rounded-full mb-4">
-                <Wind className="h-4 w-4" /> Our HVAC Services
-              </div>
-              <h2 className="text-2xl font-extrabold text-foreground mb-2">
-                What We Offer
-              </h2>
-              <p className="text-gray-600 mb-6">
-                We provide end-to-end HVAC solutions — designing systems that balance 
-                performance with energy efficiency, then installing and maintaining them 
-                for long-term reliability.
-              </p>
-              <div className="flex flex-col gap-3">
-                {offerings.map((o) => (
-                  <div key={o} className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-gray-700 font-medium">{o}</span>
+      {/* Content Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4 lg:px-12">
+          <div className="flex flex-col lg:flex-row gap-16 items-start">
+            
+            {/* Image Column */}
+            <div className="flex-1 lg:sticky lg:top-32">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-primary/5 rounded-[3rem] blur-2xl group-hover:bg-primary/10 transition-colors" />
+                <img 
+                  src="/images/hvac-industrial-setup.png" 
+                  alt="Industrial HVAC Systems"
+                  loading="lazy"
+                  decoding="async"
+                  className="relative rounded-[2.5rem] w-full h-[600px] object-cover shadow-2xl transition-transform duration-700 hover:scale-[1.02]"
+                />
+                <div className="absolute bottom-8 left-8 right-8 bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-xl">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-primary rounded-2xl flex items-center justify-center shrink-0">
+                      <ShieldCheck className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-slate-900 font-bold">Pure Air Quality</p>
+                      <p className="text-slate-500 text-sm">Advanced filtration & climate precision</p>
+                    </div>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
-            <div className="flex-1">
-              <img
-                src="/images/project-hvac.png"
-                alt="HVAC project installation"
-                className="w-full h-full min-h-[300px] object-cover rounded-xl shadow-lg"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Sectors */}
-      <section className="py-16 section-alt">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10">
-            <p className="section-label">Sectors We Serve</p>
-            <h2 className="section-title">Built for Every Environment</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {sectors.map((s) => (
-              <div key={s.name} className="bg-white rounded-xl border border-border p-6 hover:shadow-lg transition-all duration-300">
-                <h3 className="font-bold text-foreground mb-2">{s.name}</h3>
-                <p className="text-sm text-gray-600">{s.desc}</p>
+            {/* Categories Column */}
+            <div className="flex-1 flex flex-col gap-8">
+              
+              {/* Domestic Block */}
+              <div className="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                    <CheckCircle className="h-6 w-6 text-primary" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-slate-900">Domestic HVAC</h2>
+                </div>
+                <p className="text-slate-600 mb-8 leading-relaxed">
+                  Creating the perfect home atmosphere. Our residential cooling and ventilation 
+                  solutions are designed to be whisper-quiet and highly energy-efficient.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {domesticServices.map((s) => (
+                    <div key={s} className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                      <span className="text-slate-700 font-medium text-sm">{s}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+
+              {/* Industrial Block */}
+              <div className="bg-slate-900 rounded-[2.5rem] p-10 border border-slate-800 shadow-xl text-white">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="h-12 w-12 bg-white/10 rounded-xl flex items-center justify-center border border-white/10">
+                    <ShieldCheck className="h-6 w-6 text-primary-light" />
+                  </div>
+                  <h2 className="text-3xl font-bold">Industrial HVAC</h2>
+                </div>
+                <p className="text-slate-400 mb-8 leading-relaxed">
+                  Engineered for large-scale performance. We provide robust air management systems 
+                  for factories, warehouses, and data centers that require strict climate control.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {industrialServices.map((s) => (
+                    <div key={s} className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-primary-light shrink-0 mt-0.5" />
+                      <span className="text-slate-300 font-medium text-sm">{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-primary">
-        <div className="container mx-auto px-4 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-3">
-            Need HVAC Solutions?
+      <section className="py-20 bg-primary">
+        <div className="container mx-auto px-4 lg:px-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6">
+            Need Expert HVAC Solutions?
           </h2>
-          <p className="text-white/80 mb-6 max-w-lg mx-auto">
-            Let us design and install the perfect climate control system for your space.
+          <p className="text-white/80 mb-10 max-w-2xl mx-auto text-lg">
+            Our specialists are ready to design the perfect system for your building. 
+            Request a free quotation today.
           </p>
-          <Link to="/request-quote" className="btn-white px-8 py-3.5">
-            Request For Quotation <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/request-quote" className="btn-white px-10 py-4 text-lg">
+              Get A Quotation <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </div>
         </div>
       </section>
     </Layout>

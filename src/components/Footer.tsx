@@ -18,7 +18,7 @@ const legalLinks = [
 export default function Footer() {
   return (
     <footer className="bg-[#0F172A] text-gray-300">
-      <div className="container mx-auto px-4 lg:px-8 py-12">
+      <div className="max-w-screen-2xl mx-auto px-4 lg:px-12 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
@@ -97,7 +97,7 @@ export default function Footer() {
 
       {/* Copyright */}
       <div className="border-t border-gray-800">
-        <div className="container mx-auto px-4 lg:px-8 py-4">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-12 py-4">
           <p className="text-center text-sm text-gray-500">
             © {new Date().getFullYear()} Acquans Ventures. All rights reserved. Powered by{' '}
             <a 
