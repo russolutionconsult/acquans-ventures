@@ -1,36 +1,7 @@
 import { BookOpen, ArrowRight, User, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
-
-const blogPosts = [
-  {
-    id: 1,
-    title: 'The Future of HVAC Systems in Commercial Buildings',
-    excerpt: 'Explore how smart technology and energy efficiency are revolutionizing modern HVAC installations across Ghana and West Africa.',
-    date: 'March 15, 2026',
-    author: 'Kwame Mensah',
-    category: 'HVAC',
-    image: '/images/hvac.png'
-  },
-  {
-    id: 2,
-    title: 'Preventative Maintenance for Industrial Boilers',
-    excerpt: 'A comprehensive guide to extending the lifespan of your boiler systems and preventing costly down-times in your facility.',
-    date: 'March 02, 2026',
-    author: 'Ama Osei',
-    category: 'Maintenance',
-    image: '/images/boiler-clean.png'
-  },
-  {
-    id: 3,
-    title: 'Choosing the Right Pipes for Large Scale Plumbing',
-    excerpt: 'Copper vs. PEX vs. PVC: An engineering breakdown of materials for durable and safe commercial plumbing networks.',
-    date: 'February 18, 2026',
-    author: 'John Doe',
-    category: 'Plumbing',
-    image: '/images/professional-plumbing-works-pipe-installation-construction.jpeg'
-  }
-];
+import { blogPosts } from '@/data/blogPosts';
 
 export default function Blog() {
   return (
@@ -88,7 +59,7 @@ export default function Blog() {
                   </div>
                   
                   <h2 className="text-xl font-bold text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">
-                    <Link to="#">
+                    <Link to={`/blog/${post.id}`}>
                       {post.title}
                     </Link>
                   </h2>
@@ -99,7 +70,7 @@ export default function Blog() {
                   
                   <div className="border-t border-border pt-4 mt-auto">
                     <Link 
-                      to="#" 
+                      to={`/blog/${post.id}`} 
                       className="inline-flex items-center text-sm font-bold text-primary hover:text-blue-700 transition-colors"
                     >
                       Read Article <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
