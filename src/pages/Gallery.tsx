@@ -150,6 +150,37 @@ export default function Gallery() {
 
   const current = lightboxIndex !== null ? filtered[lightboxIndex] : null;
 
+  const galleryJsonLd = useMemo(
+    () =>
+      JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ImageGallery',
+        name: 'Acquans Ventures Photo Gallery',
+        description:
+          "Photo gallery of Acquans Ventures' completed plumbing, civil, heating, ventilation, boiler, and water treatment installations.",
+        url: 'https://acquansventures.com/gallery',
+        image: images.map((img) => ({
+          '@type': 'ImageObject',
+          contentUrl: `https://acquansventures.com${img.src}`,
+          name: img.title,
+          description: `${img.title} — ${img.category}`,
+        })),
+      }),
+    []
+  );
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'gallery-jsonld';
+    script.textContent = galleryJsonLd;
+    document.head.appendChild(script);
+    return () => {
+      const existing = document.getElementById('gallery-jsonld');
+      if (existing) existing.remove();
+    };
+  }, [galleryJsonLd]);
+
   return (
     <Layout>
       {/* Page Header */}
@@ -204,7 +235,10 @@ export default function Gallery() {
                 <img
                   src={img.src}
                   alt={img.title}
-                  loading="lazy"
+                  width={400}
+                  height={400}
+                  loading={idx < 8 ? 'eager' : 'lazy'}
+                  fetchPriority={idx < 4 ? 'high' : 'auto'}
                   decoding="async"
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
