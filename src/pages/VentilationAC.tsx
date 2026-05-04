@@ -59,7 +59,7 @@ export default function VentilationAC() {
               <div className="relative group">
                 <div className="absolute -inset-4 bg-primary/5 rounded-[3rem] blur-2xl group-hover:bg-primary/10 transition-colors" />
                 <img 
-                  src="/images/hvac-industrial-setup.png" 
+                  src="/images/ventilation equipment.jpeg"
                   alt="Industrial HVAC Systems"
                   loading="lazy"
                   decoding="async"

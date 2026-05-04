@@ -5,11 +5,11 @@ import { Phone, Wrench, Building2, Flame, Wind, CircleDot, ArrowRight, CheckCirc
 import Layout from '@/components/Layout';
 
 const services = [
-  { title: 'Plumbing Works', icon: Wrench, img: '/images/plumbing-works-industrial.png', path: '/services/plumbing-works', desc: 'Complete plumbing solutions for residential and commercial projects.', color: 'text-blue-600', shadow: 'hover:shadow-blue-100' },
-  { title: 'Civil Works', icon: Building2, img: '/images/civil-works-clean.png', path: '/services/civil-works', desc: 'Structural and civil engineering construction services.', color: 'text-emerald-600', shadow: 'hover:shadow-emerald-100' },
+  { title: 'Plumbing Works', icon: Wrench, img: '/images/professional-plumbing-works-pipe-installation-construction.jpeg', path: '/services/plumbing-works', desc: 'Complete plumbing solutions for residential and commercial projects.', color: 'text-blue-600', shadow: 'hover:shadow-blue-100' },
+  { title: 'Civil Works', icon: Building2, img: '/images/civil works at acquans ventures.jpeg', path: '/services/civil-works', desc: 'Structural and civil engineering construction services.', color: 'text-emerald-600', shadow: 'hover:shadow-emerald-100' },
   { title: 'Heating', icon: Flame, img: '/images/worker working on heating.jpeg', path: '/services/heating-systems', desc: 'Modern heating system design and installation.', color: 'text-orange-600', shadow: 'hover:shadow-orange-100' },
-  { title: 'Ventilation & AC', icon: Wind, img: '/images/hvac-technician-rooftop.png', path: '/services/ventilation-ac', desc: 'HVAC systems for optimal indoor climate control.', color: 'text-sky-600', shadow: 'hover:shadow-sky-100' },
-  { title: 'Boiler Installations', icon: CircleDot, img: '/images/boiler-repair-industrial.png', path: '/services/boiler-installations', desc: 'Industrial and commercial boiler setup and maintenance.', color: 'text-slate-700', shadow: 'hover:shadow-slate-200' },
+  { title: 'Ventilation & AC', icon: Wind, img: '/images/ventilation installation.jpeg', path: '/services/ventilation-ac', desc: 'HVAC systems for optimal indoor climate control.', color: 'text-sky-600', shadow: 'hover:shadow-sky-100' },
+  { title: 'Boiler Installations', icon: CircleDot, img: '/images/boiler installation.jpeg', path: '/services/boiler-installations', desc: 'Industrial and commercial boiler setup and maintenance.', color: 'text-slate-700', shadow: 'hover:shadow-slate-200' },
   { title: 'Maintenance', icon: Settings, img: '/images/maintenance-planning.jpeg', path: '/services/maintenance', desc: 'Preventive and corrective maintenance for all your building systems.', color: 'text-rose-600', shadow: 'hover:shadow-rose-100' },
 ];
 
@@ -220,10 +220,10 @@ export default function Home() {
             {/* Decorative background accent */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
             
-            <div className="relative p-2 bg-white border border-gray-100 rounded-[2.5rem] shadow-xl overflow-hidden max-w-md mx-auto group">
+            <div className="relative p-2 bg-white border-2 border-blue-600 rounded-[2.5rem] shadow-xl overflow-hidden max-w-md mx-auto group">
               <img
-                src="/images/civil-engineering-rebar-foundation-construction-workers (2).png"
-                alt="Quality civil works"
+                src="/images/our team of experts.png"
+                alt="Our team of experts"
                 loading="lazy"
                 decoding="async"
                 className="rounded-[2rem] w-full h-auto object-cover transition-transform hover:scale-105 duration-700"

@@ -45,6 +45,10 @@ const seoConfig: Record<string, { title: string; description: string }> = {
     title: 'Our Projects | Proven Track Record of Excellence',
     description: 'Explore our portfolio of completed works across various sectors, demonstrating our engineering precision and commitment to quality.'
   },
+  '/gallery': {
+    title: 'Photo Gallery | Plumbing, Civil, HVAC & Boiler Works',
+    description: 'Browse our photo gallery of completed plumbing, civil, heating, ventilation, boiler, and water treatment installations across Ghana.'
+  },
   '/contact': {
     title: 'Contact Us | Get in Touch with Our Experts',
     description: 'Have a project? Contact Acquans Ventures for expert advice and professional technical service inquiries.'

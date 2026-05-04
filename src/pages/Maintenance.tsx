@@ -75,7 +75,7 @@ export default function Maintenance() {
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1">
               <img
-                src="/images/project-hvac.png"
+                src="/images/Maintenance is key.jpeg"
                 alt="HVAC maintenance work"
                 className="rounded-xl shadow-lg w-full h-72 object-cover"
               />
