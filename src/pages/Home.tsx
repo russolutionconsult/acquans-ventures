@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Phone, Wrench, Building2, Flame, Wind, CircleDot, ArrowRight, CheckCircle, Settings, Star } from 'lucide-react';
 import Layout from '@/components/Layout';
+import EnlargeableImage from '@/components/EnlargeableImage';
 
 const services = [
   { title: 'Plumbing Works', icon: Wrench, img: '/images/professional-plumbing-works-pipe-installation-construction.jpeg', path: '/services/plumbing-works', desc: 'Complete plumbing solutions for residential and commercial projects.', color: 'text-blue-600', shadow: 'hover:shadow-blue-100' },
@@ -220,12 +221,10 @@ export default function Home() {
             {/* Decorative background accent */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
             
-            <div className="relative p-2 bg-white border-2 border-blue-600 rounded-[2.5rem] shadow-xl overflow-hidden max-w-md mx-auto group">
-              <img
+            <div className="relative p-2 bg-white border-2 border-blue-600 rounded-[2.5rem] shadow-xl overflow-hidden max-w-md mx-auto">
+              <EnlargeableImage
                 src="/images/our team of experts.png"
                 alt="Our team of experts"
-                loading="lazy"
-                decoding="async"
                 className="rounded-[2rem] w-full h-auto object-cover transition-transform hover:scale-105 duration-700"
               />
             </div>
