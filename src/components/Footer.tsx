@@ -6,6 +6,7 @@ const quickLinks = [
   { label: 'About Us', path: '/about' },
   { label: 'Services', path: '/services' },
   { label: 'Projects', path: '/projects' },
+  { label: 'Gallery', path: '/gallery' },
   { label: 'Contact', path: '/contact' },
 ];
 
@@ -24,7 +25,7 @@ export default function Footer() {
           <div>
             <Link to="/" className="inline-block mb-4">
               <img
-                src="/images/Acquans Ventures Official Logo.png"
+                src="/images/official logo of acquans ventures.png"
                 alt="Acquans Ventures"
                 className="h-14 w-auto brightness-0 invert"
               />

@@ -1,12 +1,11 @@
+import { Link } from 'react-router-dom';
+import { Images, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 
 const projects = [
-  { title: 'Commercial Plumbing Installation', category: 'PLUMBING', img: '/images/project-plumbing-clean.png' },
-  { title: 'Multi-Story Building Construction', category: 'CIVIL WORKS', img: '/images/project-construction-clean.png' },
-  { title: 'Rooftop HVAC System Setup', category: 'HVAC', img: '/images/project-hvac-clean.png' },
-  { title: 'Industrial Boiler Room', category: 'BOILER', img: '/images/project-boiler-clean.png' },
-  { title: 'Engineering Site Project', category: 'CIVIL WORKS', img: '/images/project-engineering-clean.png' },
-  { title: 'Copper Pipe Installation', category: 'PLUMBING', img: '/images/project-copper-pipes-clean.png' },
+  { title: 'Commercial Plumbing Installation', category: 'PLUMBING', img: '/images/commercial plumbing.jpeg' },
+  { title: 'Building & Construction', category: 'CIVIL WORKS', img: '/images/construction project.jpeg' },
+  { title: 'Industrial Installation', category: 'BOILER', img: '/images/boilers .jpeg' },
 ];
 
 const categoryColors: Record<string, string> = {
@@ -32,7 +31,7 @@ export default function Projects() {
       </section>
 
       {/* Gallery */}
-      <section className="pb-20">
+      <section className="pb-12">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((p) => (
@@ -57,6 +56,29 @@ export default function Projects() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery CTA */}
+      <section className="pb-20">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="rounded-2xl bg-gradient-to-r from-primary to-blue-600 p-8 lg:p-12 text-center text-white">
+            <Images className="h-10 w-10 mx-auto mb-4 opacity-90" />
+            <h2 className="text-2xl lg:text-3xl font-bold mb-2">
+              See more of our work
+            </h2>
+            <p className="text-white/90 max-w-xl mx-auto mb-6">
+              Browse our full photo gallery of completed plumbing, civil, heating, ventilation,
+              boiler, and water treatment installations.
+            </p>
+            <Link
+              to="/gallery"
+              className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
+            >
+              View Full Gallery
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>

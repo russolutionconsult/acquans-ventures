@@ -48,7 +48,7 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
             <img
-              src="/images/Acquans Ventures Official Logo.png"
+              src="/images/official logo of acquans ventures.png"
               alt="Acquans Ventures"
               width="160"
               height="64"

@@ -59,7 +59,7 @@ export default function CivilWorks() {
               <div className="relative group">
                 <div className="absolute -inset-4 bg-primary/5 rounded-[3rem] blur-2xl group-hover:bg-primary/10 transition-colors" />
                 <img 
-                  src="/images/project-construction.png" 
+                  src="/images/civil works in the field.jpeg"
                   alt="Professional Civil Works"
                   loading="lazy"
                   decoding="async"
