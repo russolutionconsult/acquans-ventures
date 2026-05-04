@@ -74,7 +74,7 @@ export const blogPosts: BlogPost[] = [
     date: 'March 02, 2026',
     author: 'Ama Osei',
     category: 'Maintenance',
-    image: '/images/boiler-repair-industrial.png',
+    image: '/images/boiler equipment.jpeg',
     content: `
 <h2>Why Boiler Maintenance is a Priority for Every Facility</h2>
 <p>An industrial boiler is the heart of many factories, manufacturing industries, laundry facilities, hospitals, and large hotels in Ghana. It provides the steam or hot water needed for cleaning, sterilization, and manufacturing processes. When a boiler breaks down unexpectedly, the entire operation can grind to a halt. This leads to lost production time, stressed staff, and very expensive emergency repair bills. Fortunately, the majority of boiler failures can be prevented with a consistent plan for preventative maintenance.</p>
