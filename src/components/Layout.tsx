@@ -80,25 +80,42 @@ export default function Layout({ children }: LayoutProps) {
       };
     }
 
-    // Update Title
-    document.title = `${config.title} | Acquans Ventures`;
+    const fullTitle = `${config.title} | Acquans Ventures`;
+    const url = `https://acquansventures.com${location.pathname}`;
 
-    // Update Meta Description
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', config.description);
-    } else {
-      metaDescription = document.createElement('meta');
-      metaDescription.setAttribute('name', 'description');
-      metaDescription.setAttribute('content', config.description);
-      document.head.appendChild(metaDescription);
-    }
+    // Update Title
+    document.title = fullTitle;
+
+    const setMeta = (selector: string, attr: string, attrValue: string, content: string) => {
+      let el = document.querySelector(selector);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, attrValue);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+
+    // Standard
+    setMeta('meta[name="description"]', 'name', 'description', config.description);
+
+    // Open Graph
+    setMeta('meta[property="og:title"]', 'property', 'og:title', fullTitle);
+    setMeta('meta[property="og:description"]', 'property', 'og:description', config.description);
+    setMeta('meta[property="og:url"]', 'property', 'og:url', url);
+
+    // Twitter
+    setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', fullTitle);
+    setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', config.description);
 
     // Update Canonical
     let canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) {
-      canonical.setAttribute('href', `https://acquansventures.com${location.pathname}`);
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
     }
+    canonical.setAttribute('href', url);
 
     // Scroll to top on route change
     window.scrollTo(0, 0);

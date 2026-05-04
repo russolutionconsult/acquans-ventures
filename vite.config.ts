@@ -1,9 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    ViteImageOptimizer({
+      jpeg: { quality: 75 },
+      jpg: { quality: 75 },
+      png: { quality: 80 },
+      webp: { quality: 75 },
+    }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -26,4 +35,3 @@ export default defineConfig({
     sourcemap: false,
   },
 });
-//Test comment
