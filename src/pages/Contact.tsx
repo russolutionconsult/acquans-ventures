@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Phone, MapPin, Mail, Send, CheckCircle, ChevronDown } from 'lucide-react';
+import { Phone, MapPin, Mail, Send, CheckCircle, ChevronDown, Instagram, Facebook, Linkedin } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { supabase } from '@/lib/supabase';
 
@@ -219,7 +219,7 @@ export default function Contact() {
 
                 <a
                   href="mailto:info@acquansventures.com"
-                  className="flex items-center gap-4 p-5 rounded-xl border border-border bg-white hover:shadow-md transition-shadow"
+                  className="flex items-center gap-4 p-5 rounded-xl border border-border bg-white hover:shadow-md transition-shadow mb-6"
                 >
                   <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
                     <Mail className="h-5 w-5 text-white" />
@@ -229,6 +229,53 @@ export default function Contact() {
                     <p className="font-bold text-foreground">info@acquansventures.com</p>
                   </div>
                 </a>
+
+                {/* Social Links */}
+                <h3 className="text-lg font-bold text-foreground mb-4">Follow Us</h3>
+                <div className="flex items-center gap-4">
+                  <a
+                    href="https://www.facebook.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-xl border border-border bg-white flex items-center justify-center text-gray-600 hover:text-primary hover:border-primary hover:shadow-md transition-all"
+                    aria-label="Facebook"
+                  >
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                  <a
+                    href="https://www.instagram.com/p/DYPp4TAiLd9"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-xl border border-border bg-white flex items-center justify-center text-gray-600 hover:text-primary hover:border-primary hover:shadow-md transition-all"
+                    aria-label="Instagram"
+                  >
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                  <a
+                    href="https://www.tiktok.com/@acquans_ventures"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-xl border border-border bg-white flex items-center justify-center text-gray-600 hover:text-primary hover:border-primary hover:shadow-md transition-all"
+                    aria-label="TikTok"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 448 512" 
+                      className="h-5 w-5 fill-current"
+                    >
+                      <path d="M448 209.9a210.1 210.1 0 0 1 -122.8-39.3V349.4A162.6 162.6 0 1 1 185 188.3V278.2a74.6 74.6 0 1 0 52.2 71.2V0l88 0a121.2 121.2 0 0 0 1.9 22.2h0A122.2 122.2 0 0 0 381 102.4a121.4 121.4 0 0 0 67 20.1z"/>
+                    </svg>
+                  </a>
+                  <a
+                    href="https://www.linkedin.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-xl border border-border bg-white flex items-center justify-center text-gray-600 hover:text-primary hover:border-primary hover:shadow-md transition-all"
+                    aria-label="LinkedIn"
+                  >
+                    <Linkedin className="h-5 w-5" />
+                  </a>
+                </div>
               </div>
 
             </div>
