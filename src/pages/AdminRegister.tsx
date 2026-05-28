@@ -19,6 +19,12 @@ export default function AdminRegister() {
     setLoading(true);
     setError(null);
 
+    // Restrict admin registration to branded domain only
+    if (!email.toLowerCase().endsWith('@acquansventures.com')) {
+      setError('Unauthorized access. Admin registration requires an @acquansventures.com email address.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
