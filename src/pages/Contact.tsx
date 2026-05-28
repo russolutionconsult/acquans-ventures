@@ -29,6 +29,17 @@ export default function Contact() {
 
       if (error) throw error;
 
+      // Send Email Notification
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'contact', data: formData })
+        });
+      } catch (emailErr) {
+        console.error('Email notification failed:', emailErr);
+      }
+
       setSubmitted(true);
       setFormData({ name: '', email: '', phone: '', service: '', message: '' });
       setTimeout(() => setSubmitted(false), 5000);
