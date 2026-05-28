@@ -57,6 +57,7 @@ export default async function handler(req: any, res: any) {
   try {
     const info = await transporter.sendMail({
       from: `"Acquans Ventures" <${process.env.SMTP_USER}>`,
+      replyTo: data.email,
       to: toEmails.join(', '),
       subject,
       html: htmlBody,
