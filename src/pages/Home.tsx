@@ -75,7 +75,7 @@ export default function Home() {
             <motion.span 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-block bg-white/15 border border-white/30 text-white font-semibold text-xs tracking-widest uppercase px-5 py-2 rounded-full mb-4 backdrop-blur-sm"
+              className="inline-block bg-white/15 border border-white/30 text-white font-semibold text-[10px] sm:text-xs tracking-widest uppercase px-5 py-2 rounded-full mb-4 backdrop-blur-sm"
             >
               Technical Installation & Building Services
             </motion.span>
