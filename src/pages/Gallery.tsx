@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import SEO from '@/components/SEO';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 
@@ -183,6 +184,7 @@ export default function Gallery() {
 
   return (
     <Layout>
+      <SEO title="Gallery" />
       {/* Page Header */}
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4 lg:px-8 text-center">
@@ -298,7 +300,7 @@ export default function Gallery() {
             className="max-w-[90vw] max-h-[90vh] flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
+            <img loading="lazy"
               src={current.src}
               alt={current.title}
               className="max-w-full max-h-[80vh] object-contain rounded-md shadow-2xl"

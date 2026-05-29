@@ -47,7 +47,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
-            <img
+            <img fetchPriority="high"
               src="/images/official logo of acquans ventures.png"
               alt="Acquans Ventures"
               width="160"

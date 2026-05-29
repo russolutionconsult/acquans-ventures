@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle, Flame, ShieldCheck } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -23,10 +24,11 @@ const industrialServices = [
 export default function HeatingSystems() {
   return (
     <Layout>
+      <SEO title="Heating Systems" />
       {/* Hero */}
       <section className="relative py-24 lg:py-32">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/heating-banner-clean-african.png"
             alt="Modern heating systems"
             className="w-full h-full object-cover"

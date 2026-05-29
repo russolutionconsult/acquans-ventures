@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import SEO from '@/components/SEO';
 import { ArrowLeft, User, Calendar, Clock, Share2, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { blogPosts } from '@/data/blogPosts';
 import Layout from '@/components/Layout';
@@ -17,6 +18,7 @@ export default function BlogDetail() {
   if (!post) {
     return (
       <Layout>
+      <SEO title="Blog Post" />
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <h1 className="text-2xl font-bold mb-4">Post not found</h1>
           <Link to="/blog" className="btn-primary">Back to Blog</Link>
@@ -82,7 +84,7 @@ export default function BlogDetail() {
               transition={{ delay: 0.2 }}
               className="rounded-[2.5rem] overflow-hidden shadow-2xl mb-16 aspect-video"
             >
-              <img 
+              <img loading="lazy" 
                 src={post.image} 
                 alt={post.title}
                 className="w-full h-full object-cover"

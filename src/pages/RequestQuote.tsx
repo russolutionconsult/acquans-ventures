@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SEO from '@/components/SEO';
 import { Send, CheckCircle, ChevronDown, User, Mail, Phone, Briefcase, MessageSquare } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { supabase } from '@/lib/supabase';
@@ -56,10 +57,11 @@ export default function RequestQuote() {
 
   return (
     <Layout>
+      <SEO title="Request Quote" />
       {/* Hero */}
       <section className="relative py-20 lg:py-32 bg-gray-900 overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/civil-engineering-rebar-foundation-construction-workers.png"
             alt="Request a Quote"
             className="w-full h-full object-cover opacity-30"

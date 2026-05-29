@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -150,6 +151,7 @@ export default function AdminClientJourney() {
   if (loading) {
     return (
       <Layout>
+      <SEO title="Admin - Client Journey" />
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
         </div>

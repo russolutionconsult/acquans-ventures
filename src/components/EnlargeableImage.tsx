@@ -67,7 +67,7 @@ export default function EnlargeableImage({
           >
             <X className="h-8 w-8" />
           </button>
-          <img
+          <img loading="lazy"
             src={src}
             alt={alt}
             onClick={(e) => e.stopPropagation()}

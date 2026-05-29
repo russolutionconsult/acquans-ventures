@@ -1,8 +1,10 @@
 import Layout from '@/components/Layout';
+import SEO from '@/components/SEO';
 
 export default function CookiePolicy() {
   return (
     <Layout>
+      <SEO title="Cookie Policy" />
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <h1 className="text-4xl font-extrabold text-gray-900 mb-8">Cookie Policy</h1>

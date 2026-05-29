@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 import { ArrowRight, CheckCircle, Zap, ShieldCheck } from 'lucide-react';
 import Layout from '@/components/Layout';
 
@@ -17,10 +18,11 @@ const services = [
 export default function PumpInstallation() {
   return (
     <Layout>
+      <SEO title="Pump Installation" />
       {/* Hero */}
       <section className="relative py-24 lg:py-32">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/pump installation.png"
             alt="Professional water pump installation"
             className="w-full h-full object-cover"

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 import { ArrowRight, CheckCircle, CircleDot, ShieldCheck } from 'lucide-react';
 import Layout from '@/components/Layout';
 
@@ -21,10 +22,11 @@ const safety = [
 export default function BoilerInstallations() {
   return (
     <Layout>
+      <SEO title="Boiler Installations" />
       {/* Hero */}
       <section className="relative py-20 lg:py-28">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/boiler machines.png"
             alt="Large industrial boiler machines setup"
             className="w-full h-full object-cover"
@@ -90,7 +92,7 @@ export default function BoilerInstallations() {
                     </div>
                   ))}
                 </div>
-                <img
+                <img loading="lazy"
                   src="/images/boiler machines.png"
                   alt="Professional industrial boiler machines installation"
                   className="w-full h-44 object-cover rounded-lg mt-6"

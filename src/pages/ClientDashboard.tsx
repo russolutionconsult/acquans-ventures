@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -191,6 +192,7 @@ export default function ClientDashboard() {
 
   return (
     <Layout>
+      <SEO title="Client Dashboard" />
       <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
         
         {/* Mobile Header Toggle */}

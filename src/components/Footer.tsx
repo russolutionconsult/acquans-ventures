@@ -24,7 +24,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" className="inline-block mb-4">
-              <img
+              <img loading="lazy"
                 src="/images/official logo of acquans ventures.png"
                 alt="Acquans Ventures"
                 className="h-14 w-auto brightness-0 invert"

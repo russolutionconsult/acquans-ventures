@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { BookOpen, ArrowRight, User, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -6,6 +7,7 @@ import { blogPosts } from '@/data/blogPosts';
 export default function Blog() {
   return (
     <Layout>
+      <SEO title="Blog" />
       {/* Hero Header */}
       <section className="bg-primary pt-24 pb-20 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
@@ -34,7 +36,7 @@ export default function Blog() {
                 {/* Image Link */}
                 <Link to={`/blog/${post.id}`} className="block h-56 overflow-hidden relative">
                   <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors duration-500 z-10" />
-                  <img 
+                  <img loading="lazy" 
                     src={post.image} 
                     alt={post.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
