@@ -142,7 +142,7 @@ export default function Home() {
       </section>
 
       {/* Services Overview */}
-      <section className="pt-24 pb-12 bg-white relative overflow-hidden">
+      <section className="pt-8 pb-12 bg-white relative overflow-hidden">
         {/* Soft background glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         
