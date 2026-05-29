@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 import { ArrowRight, CheckCircle, ClipboardList, FileText, HardHat, BarChart3, Lightbulb, Users } from 'lucide-react';
 import Layout from '@/components/Layout';
 
@@ -21,10 +22,11 @@ const process = [
 export default function Consulting() {
   return (
     <Layout>
+      <SEO title="Consulting" />
       {/* Hero */}
       <section className="relative py-20 lg:py-28">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/Construction professionals in discussion on-site.png"
             alt="Construction professionals in discussion on-site"
             className="w-full h-full object-cover"
@@ -75,7 +77,7 @@ export default function Consulting() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1">
-              <img
+              <img loading="lazy"
                 src="/images/Construction professionals in discussion on-site.png"
                 alt="Experts in discussion on-site"
                 className="rounded-xl shadow-lg w-full h-72 object-cover"

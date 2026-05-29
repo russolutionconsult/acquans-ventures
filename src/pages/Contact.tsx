@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { Phone, MapPin, Mail, Send, CheckCircle, ChevronDown, Instagram, Facebook, Linkedin } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -53,10 +54,11 @@ export default function Contact() {
 
   return (
     <Layout>
+      <SEO title="Contact Us" />
       {/* Hero */}
       <section className="relative py-20 lg:py-24 overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/project-construction.png"
             alt="Contact Acquans Ventures"
             className="w-full h-full object-cover"

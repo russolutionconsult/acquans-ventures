@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Phone, Wrench, Building2, Flame, Wind, CircleDot, ArrowRight, CheckCircle, Settings, Star } from 'lucide-react';
 import Layout from '@/components/Layout';
 import EnlargeableImage from '@/components/EnlargeableImage';
+import SEO from '@/components/SEO';
 
 const services = [
   { title: 'Plumbing Works', icon: Wrench, img: '/images/professional-plumbing-works-pipe-installation-construction.jpeg', path: '/services/plumbing-works', desc: 'Complete plumbing solutions for residential and commercial projects.', color: 'text-blue-600', shadow: 'hover:shadow-blue-100' },
@@ -54,6 +55,7 @@ export default function Home() {
 
   return (
     <Layout>
+      <SEO title="Home" />
       {/* Hero */}
       <section className="relative min-h-[85vh] flex items-center">
         <video

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 import { ArrowRight, CheckCircle, GraduationCap } from 'lucide-react';
 import Layout from '@/components/Layout';
 
@@ -19,10 +20,11 @@ const benefits = [
 export default function Apprenticeship() {
   return (
     <Layout>
+      <SEO title="Apprenticeship" />
       {/* Hero */}
       <section className="relative py-20 lg:py-28">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/apprentices in industrial workshop.png"
             alt="Apprentices in industrial workshop"
             className="w-full h-full object-cover"
@@ -84,7 +86,7 @@ export default function Apprenticeship() {
                     </div>
                   ))}
                 </div>
-                <img
+                <img loading="lazy"
                   src="/images/apprentices in industrial workshop.png"
                   alt="Students training in industrial workshop"
                   className="w-full h-44 object-cover rounded-lg mt-6"

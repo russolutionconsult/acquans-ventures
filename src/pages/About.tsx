@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { Target, ShieldCheck, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -38,6 +39,7 @@ const values = [
 export default function About() {
   return (
     <Layout>
+      <SEO title="About Us" />
       {/* Page Header */}
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4 lg:px-8 text-center">

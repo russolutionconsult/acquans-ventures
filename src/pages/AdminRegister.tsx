@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ShieldCheck, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
@@ -70,6 +71,7 @@ export default function AdminRegister() {
 
   return (
     <Layout>
+      <SEO title="Admin Register" />
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 relative overflow-hidden bg-[#0F172A]">
         {/* Background blobs for vibrancy */}
         <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />

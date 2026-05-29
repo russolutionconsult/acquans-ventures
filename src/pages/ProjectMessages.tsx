@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import SEO from '@/components/SEO';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
@@ -234,6 +235,7 @@ const ProjectMessages = () => {
   if (loading) {
     return (
       <Layout>
+      <SEO title="Project Messages" />
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
         </div>
@@ -355,7 +357,7 @@ const ProjectMessages = () => {
                                   <div className="mt-2">
                                     {isImageFile(msg.attachment_name) ? (
                                       <a href={msg.attachment_url} target="_blank" rel="noreferrer">
-                                        <img
+                                        <img loading="lazy"
                                           src={msg.attachment_url}
                                           alt={msg.attachment_name}
                                           className="max-w-full max-h-64 rounded-2xl object-cover border border-white/20 mt-2 hover:opacity-90 transition-opacity"

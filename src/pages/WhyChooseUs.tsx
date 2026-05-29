@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { Wrench, Clock, Users, Gem, ThumbsUp } from 'lucide-react';
 import Layout from '@/components/Layout';
 
@@ -32,6 +33,7 @@ const advantages = [
 export default function WhyChooseUs() {
   return (
     <Layout>
+      <SEO title="Why Choose Us" />
       {/* Page Header */}
       <section className="py-16 lg:py-20 section-alt">
         <div className="container mx-auto px-4 lg:px-8 text-center">

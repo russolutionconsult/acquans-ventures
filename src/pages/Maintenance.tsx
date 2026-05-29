@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 import { ArrowRight, CheckCircle, Wrench, Wind, Thermometer, Flame } from 'lucide-react';
 import Layout from '@/components/Layout';
 
@@ -12,10 +13,11 @@ const services = [
 export default function Maintenance() {
   return (
     <Layout>
+      <SEO title="Maintenance" />
       {/* Hero */}
       <section className="relative py-20 lg:py-28">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/maintenance-service.png"
             alt="Technician servicing equipment"
             className="w-full h-full object-cover"
@@ -74,7 +76,7 @@ export default function Maintenance() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1">
-              <img
+              <img loading="lazy"
                 src="/images/Maintenance is key.jpeg"
                 alt="HVAC maintenance work"
                 className="rounded-xl shadow-lg w-full h-72 object-cover"

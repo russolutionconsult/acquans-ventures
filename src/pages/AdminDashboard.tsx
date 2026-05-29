@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -320,6 +321,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
+      <SEO title="Admin Dashboard" />
       <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
         {/* Mobile Header Toggle */}
         <div className="lg:hidden bg-[#0F172A] p-4 flex items-center justify-between sticky top-[72px] z-40 border-b border-white/5 shadow-lg">

@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { Link } from 'react-router-dom';
 import { Images, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -18,6 +19,7 @@ const categoryColors: Record<string, string> = {
 export default function Projects() {
   return (
     <Layout>
+      <SEO title="Projects" />
       {/* Page Header */}
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4 lg:px-8 text-center">

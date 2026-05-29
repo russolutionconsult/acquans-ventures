@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle, Droplets, ShieldCheck } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -23,10 +24,11 @@ const industrialServices = [
 export default function PlumbingWorks() {
   return (
     <Layout>
+      <SEO title="Plumbing Works" />
       {/* Hero */}
       <section className="relative py-24 lg:py-32">
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy"
             src="/images/plumbing-works-hero.jpeg"
             alt="Professional plumbing pipe installation"
             className="w-full h-full object-cover"
