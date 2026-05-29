@@ -85,7 +85,7 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6"
             >
-              <span className="text-blue-300">Building</span> Quality Projects With <span className="text-blue-300">Excellence</span>
+              <span className="text-blue-300">Delivering</span> Quality Projects in Ghana with <span className="text-blue-300">Excellence</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}

@@ -2,11 +2,10 @@ import { Link } from 'react-router-dom';
 import { Phone, MapPin, Mail, Instagram, Facebook, Linkedin } from 'lucide-react';
 
 const quickLinks = [
-  { label: 'Home', path: '/' },
-  { label: 'About Us', path: '/about' },
   { label: 'Services', path: '/services' },
   { label: 'Projects', path: '/projects' },
   { label: 'Gallery', path: '/gallery' },
+  { label: 'Why Choose Us', path: '/why-choose-us' },
   { label: 'Contact', path: '/contact' },
 ];
 

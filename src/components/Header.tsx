@@ -12,7 +12,6 @@ const navLinks = [
     dropdown: technicalServices
   },
   { label: 'Projects', path: '/projects' },
-  { label: 'Why Choose Us', path: '/why-choose-us' },
   { label: 'Blog', path: '/blog' },
   { label: 'Contact', path: '/contact' },
 ];
