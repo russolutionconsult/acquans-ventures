@@ -55,7 +55,7 @@ export default function About() {
       </section>
 
       {/* Company Info */}
-      <section className="pb-20 overflow-hidden">
+      <section className="pb-8 overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
             <motion.div 
@@ -101,7 +101,7 @@ export default function About() {
       </section>
 
       {/* Values */}
-      <section className="py-24 bg-slate-50/50 relative overflow-hidden">
+      <section className="py-12 bg-slate-50/50 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
         <div className="container relative mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

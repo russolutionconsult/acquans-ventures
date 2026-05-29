@@ -85,7 +85,7 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6"
             >
-              <span className="text-blue-300">Building</span> Quality Projects With <span className="text-blue-300">Excellence</span>
+              <span className="text-blue-300">Delivering</span> Quality Projects in Ghana with <span className="text-blue-300">Excellence</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -142,7 +142,7 @@ export default function Home() {
       </section>
 
       {/* Services Overview */}
-      <section className="pt-24 pb-12 bg-white relative overflow-hidden">
+      <section className="pt-8 pb-12 bg-white relative overflow-hidden">
         {/* Soft background glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         
