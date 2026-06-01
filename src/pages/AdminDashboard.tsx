@@ -5,7 +5,7 @@ import {
   BarChart3, Users, MessageSquare, Search, Filter,
   MoreVertical, CheckCircle2, Clock, AlertCircle, LogOut,
   Mail, Phone, Calendar, Briefcase, ChevronRight, UserPlus,
-  Loader2, ExternalLink, Heart, MapPin, FileText, Menu, X
+  Loader2, ExternalLink, Heart, MapPin, FileText, Menu, X, BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -38,7 +38,7 @@ interface Staff {
 export default function AdminDashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'quotes' | 'clients' | 'projects'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'quotes' | 'clients' | 'projects' | 'guide'>('overview');
   const [clients, setClients] = useState<any[]>([]);
   const [showCreateClient, setShowCreateClient] = useState(false);
   const [clientData, setClientData] = useState({ name: '', email: '', password: '', amount: '', selectedQuoteId: '' });
@@ -373,6 +373,12 @@ export default function AdminDashboard() {
                   label="Clients" 
                   active={activeTab === 'clients'} 
                   onClick={() => setActiveTab('clients')} 
+                />
+                <SidebarItem 
+                  icon={BookOpen} 
+                  label="User Guide" 
+                  active={activeTab === 'guide'} 
+                  onClick={() => setActiveTab('guide')} 
                 />
               </nav>
 
@@ -720,6 +726,63 @@ export default function AdminDashboard() {
                       </motion.div>
                     ))
                   )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'guide' && (
+              <div className="space-y-8 max-w-4xl">
+                <div className="border-b border-gray-200 pb-6">
+                  <h1 className="text-3xl font-bold text-gray-900">Administrator Guide</h1>
+                  <p className="text-gray-500 mt-1">Platform documentation for the Acquans Ventures management team.</p>
+                </div>
+                
+                <div className="bg-white rounded-[32px] p-8 md:p-10 shadow-sm border border-gray-100 space-y-8">
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><BookOpen className="w-5 h-5 text-primary" /> 1. Dashboard Overview</h2>
+                    <ul className="space-y-2 text-gray-600 list-disc list-inside ml-2">
+                      <li><strong className="text-gray-900">High-level statistics:</strong> View Total Quotes, Pending Requests, and Successful Clients.</li>
+                      <li><strong className="text-gray-900">Recent Quote Requests:</strong> Review the latest inquiries submitted via the website contact forms.</li>
+                      <li><strong className="text-gray-900">Recent Client Replies:</strong> Keep track of new messages sent by clients directly on the dashboard.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><BookOpen className="w-5 h-5 text-primary" /> 2. Managing Project Inquiries (Quotes)</h2>
+                    <ul className="space-y-2 text-gray-600 list-disc list-inside ml-2">
+                      <li>Navigate to the <strong className="text-gray-900">Project Inquiries</strong> tab to view full details of requested services.</li>
+                      <li>Update the status of an inquiry (e.g., mark as 'Reviewed', 'Contacted', or 'Converted').</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><BookOpen className="w-5 h-5 text-primary" /> 3. Creating Client Accounts</h2>
+                    <p className="text-gray-600 mb-3">Once a project inquiry is approved and converted to an active project:</p>
+                    <ul className="space-y-2 text-gray-600 list-disc list-inside ml-2">
+                      <li>Click the <strong className="text-gray-900">Create Client Account</strong> button in the top right corner.</li>
+                      <li>Select the corresponding quote from the dropdown list. The system will automatically pull in the client's name and email.</li>
+                      <li>Assign a temporary password and create the account. This grants the client access to their portal.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><BookOpen className="w-5 h-5 text-primary" /> 4. Managing Active Projects</h2>
+                    <p className="text-gray-600 mb-3">In the <strong className="text-gray-900">Projects</strong> tab, oversee ongoing site works:</p>
+                    <ul className="space-y-2 text-gray-600 list-disc list-inside ml-2">
+                      <li><strong className="text-gray-900">Execution Progress:</strong> Manually update the percentage slider to reflect real-world site progress.</li>
+                      <li><strong className="text-gray-900">Project Info:</strong> Post status updates that the client will see on their dashboard.</li>
+                      <li><strong className="text-gray-900">Location:</strong> Set the project site location.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><BookOpen className="w-5 h-5 text-primary" /> 5. Client Management & Impersonation</h2>
+                    <p className="text-gray-600 mb-3">In the <strong className="text-gray-900">Clients</strong> tab, view a list of all registered clients:</p>
+                    <ul className="space-y-2 text-gray-600 list-disc list-inside ml-2">
+                      <li>Click <strong className="text-gray-900">View Portal</strong> on any client to securely log into their dashboard. This shows you exactly what the client sees.</li>
+                      <li>Click <strong className="text-gray-900">Exit View</strong> at the top of the screen to return to the Admin dashboard.</li>
+                    </ul>
+                  </section>
                 </div>
               </div>
             )}
