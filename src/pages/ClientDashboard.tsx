@@ -24,7 +24,7 @@ interface Project {
 export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [activeView, setActiveView] = useState<'overview' | 'projects' | 'messages' | 'settings'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'projects' | 'messages' | 'settings' | 'guide'>('overview');
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState({ active: 0, completed: 0, pending: 0 });
   const [messages, setMessages] = useState<any[]>([]);
