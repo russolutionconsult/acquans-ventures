@@ -78,7 +78,7 @@ export default function AdminClientJourney() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['admin', 'staff'])
+        .in('role', ['admin', 'staff', 'project_team'])
         .order('full_name');
       if (error) throw error;
       setStaffList((data || []) as Staff[]);

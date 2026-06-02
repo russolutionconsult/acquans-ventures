@@ -29,6 +29,7 @@ const AdminRegister = lazy(() => import('@/pages/AdminRegister'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AdminClientJourney = lazy(() => import('@/pages/AdminClientJourney'));
 const ClientDashboard = lazy(() => import('@/pages/ClientDashboard'));
+const TeamDashboard = lazy(() => import('@/pages/TeamDashboard'));
 const ProjectMessages = lazy(() => import('@/pages/ProjectMessages'));
 const RequestQuote = lazy(() => import('@/pages/RequestQuote'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
@@ -74,6 +75,7 @@ function App() {
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/admin/client-journey/:id" element={<AdminClientJourney />} />
             <Route path="/client-dashboard" element={<ClientDashboard />} />
+            <Route path="/team-dashboard" element={<TeamDashboard />} />
             <Route path="/messages/:quoteId" element={<ProjectMessages />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsConditions />} />

@@ -39,6 +39,7 @@ const ProjectMessages = () => {
   const [project, setProject] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [role, setRole] = useState<'admin' | 'client' | null>(null);
+  const [actualRole, setActualRole] = useState<string | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -56,7 +57,11 @@ const ProjectMessages = () => {
         .eq('id', user.id)
         .single();
 
-      if (profileDoc?.role === 'admin' || profileDoc?.role === 'staff') {
+      if (profileDoc) {
+        setActualRole(profileDoc.role);
+      }
+
+      if (profileDoc?.role === 'admin' || profileDoc?.role === 'staff' || profileDoc?.role === 'project_team') {
         setRole('admin');
       } else {
         setRole('client');
@@ -250,7 +255,7 @@ const ProjectMessages = () => {
           <MessageSquare className="w-16 h-16 text-gray-300 mb-4" />
           <h2 className="text-xl font-bold text-gray-900">Project Not Found</h2>
           <p className="text-gray-500 mb-6">We couldn't find the messaging channel for this project.</p>
-          <Link to={role === 'admin' ? '/admin-dashboard' : '/client-dashboard'} className="btn-primary">
+          <Link to={actualRole === 'project_team' ? '/team-dashboard' : (role === 'admin' ? '/admin-dashboard' : '/client-dashboard')} className="btn-primary">
             Return to Dashboard
           </Link>
         </div>
@@ -267,7 +272,7 @@ const ProjectMessages = () => {
           <header className="bg-white rounded-none md:rounded-t-[32px] border-b border-slate-100 shadow-sm p-4 md:p-5 flex flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
               <Link
-                to={role === 'admin' ? `/admin/client-journey/${quoteId}` : '/client-dashboard'}
+                to={actualRole === 'project_team' ? '/team-dashboard' : (role === 'admin' ? `/admin/client-journey/${quoteId}` : '/client-dashboard')}
                 className="p-2.5 md:p-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl md:rounded-2xl transition-all shadow-lg shrink-0"
               >
                 <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 stroke-[3]" />
