@@ -129,7 +129,7 @@ export default function Login() {
 
                     {/* Symmetry Footer */}
                     <div className="px-6 py-6 border-t border-white/5 bg-white/5 text-center">
-                      <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-extrabold">Authorized Access Only</p>
+                      <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] font-extrabold">Authorized Access Only</p>
                     </div>
                   </motion.div>
 
@@ -153,7 +153,7 @@ export default function Login() {
 
                     {/* Unified Footer CTA */}
                     <div className="px-6 py-6 border-t border-white/5 bg-white/5 text-center">
-                      <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-extrabold mb-2">New to Acquans?</p>
+                      <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] font-extrabold mb-2">New to Acquans?</p>
                       <div className="flex items-center justify-center gap-2 text-sm">
                         <Link
                           to="/request-quote"
