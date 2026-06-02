@@ -116,7 +116,7 @@ export default function Header() {
               to="/request-quote"
               className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-black text-primary font-bold rounded-lg hover:bg-gray-50 transition-all active:scale-95"
             >
-              Request For Quotation
+              Get Quotation
             </Link>
             <Link
               to="/login"
@@ -200,7 +200,7 @@ export default function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-black text-primary font-bold rounded-xl"
               >
-                Request For Quotation
+                Get Quotation
               </Link>
               <Link
                 to="/login"
