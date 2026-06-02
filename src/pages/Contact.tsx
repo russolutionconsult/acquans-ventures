@@ -220,7 +220,12 @@ export default function Contact() {
                   </div>
                 </a>
 
-                <div className="flex items-center gap-4 p-5 rounded-xl border border-border bg-primary/5">
+                <a
+                  href="https://maps.app.goo.gl/ciNGa9cqHqrn2MXA6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-5 rounded-xl border border-border bg-white hover:shadow-md transition-shadow"
+                >
                   <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
                     <MapPin className="h-5 w-5 text-white" />
                   </div>
@@ -228,7 +233,7 @@ export default function Contact() {
                     <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Location</p>
                     <p className="font-bold text-foreground">Ghana</p>
                   </div>
-                </div>
+                </a>
 
                 <a
                   href="mailto:info@acquansventures.com"

@@ -124,10 +124,15 @@ export default function Footer() {
                 <Phone className="h-4 w-4 shrink-0" />
                 0543861162 / 0506624555
               </a>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
+              <a 
+                href="https://maps.app.goo.gl/ciNGa9cqHqrn2MXA6"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+              >
                 <MapPin className="h-4 w-4 shrink-0" />
                 Ghana
-              </div>
+              </a>
               <a
                 href="mailto:info@acquansventures.com"
                 className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
