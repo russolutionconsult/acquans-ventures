@@ -86,6 +86,198 @@ export default function Login() {
 
   return (
     <Layout>
+      <SEO title="Login" />
+      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 relative overflow-hidden bg-[#0F172A]">
+        {/* Background blobs for vibrancy */}
+        <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 w-full text-white">
+          <AnimatePresence mode="wait">
+            {!role && !companySubSelect ? (
+              <motion.div
+                key="selection"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="text-center"
+              >
+                <div className="mb-12">
+                  <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                    Welcome Back
+                  </h1>
+                  <p className="text-white/60 text-lg">
+                    Which portal would you like to access today?
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl mx-auto items-stretch">
+                  {/* Admin Login Card */}
+                  <motion.div
+                    whileHover={{ scale: 1.02, translateY: -4 }}
+                    className="flex flex-col bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] overflow-hidden transition-all hover:bg-white/15 hover:border-primary/50 group h-full shadow-2xl"
+                  >
+                    <div
+                      className="flex-1 flex flex-col items-center justify-center p-12 cursor-pointer"
+                      onClick={() => setCompanySubSelect(true)}
+                    >
+                      <div className="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/30 transition-all duration-300">
+                        <ShieldCheck className="w-10 h-10 text-primary" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-2">Company Login</h3>
+                      <p className="text-white/60 text-center text-sm">
+                        Access management and project team dashboards.
+                      </p>
+                    </div>
+
+                    {/* Symmetry Footer */}
+                    <div className="px-6 py-6 border-t border-white/5 bg-white/5 text-center">
+                      <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] font-extrabold">Authorized Access Only</p>
+                    </div>
+                  </motion.div>
+
+                  {/* Client Login Card */}
+                  <motion.div
+                    whileHover={{ scale: 1.02, translateY: -4 }}
+                    className="flex flex-col bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] overflow-hidden transition-all hover:bg-white/15 hover:border-primary/50 group h-full shadow-2xl"
+                  >
+                    <div
+                      className="flex-1 flex flex-col items-center justify-center p-12 cursor-pointer"
+                      onClick={() => setRole('client')}
+                    >
+                      <div className="w-20 h-20 rounded-2xl bg-secondary/20 flex items-center justify-center mb-6 group-hover:bg-secondary/30 transition-all duration-300">
+                        <UserCircle2 className="w-10 h-10 text-secondary" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-2">Client Login</h3>
+                      <p className="text-white/60 text-center text-sm">
+                        View project status, quotes, and communication history.
+                      </p>
+                    </div>
+
+                    {/* Unified Footer CTA */}
+                    <div className="px-6 py-6 border-t border-white/5 bg-white/5 text-center">
+                      <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] font-extrabold mb-2">New to Acquans?</p>
+                      <div className="flex items-center justify-center gap-2 text-sm">
+                        <Link
+                          to="/request-quote"
+                          className="text-primary font-bold hover:text-white transition-all hover:underline"
+                        >
+                          Request For Quotation
+                        </Link>
+                        <span className="text-white/20 px-1">•</span>
+                        <Link
+                          to="/contact"
+                          className="text-primary font-bold hover:text-white transition-all hover:underline"
+                        >
+                          Contact Us
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ) : !role && companySubSelect ? (
+              <motion.div
+                key="sub-selection"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="text-center"
+              >
+                <div className="mb-12">
+                  <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                    Company Portal
+                  </h1>
+                  <p className="text-white/60 text-lg">
+                    Select your access level
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl mx-auto items-stretch">
+                  <motion.div
+                    whileHover={{ scale: 1.02, translateY: -4 }}
+                    className="flex flex-col bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] overflow-hidden transition-all hover:bg-white/15 hover:border-primary/50 group h-full shadow-2xl"
+                  >
+                    <div
+                      className="flex-1 flex flex-col items-center justify-center p-12 cursor-pointer"
+                      onClick={() => setRole('admin')}
+                    >
+                      <div className="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/30 transition-all duration-300">
+                        <ShieldCheck className="w-10 h-10 text-primary" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-2">Admin Login</h3>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02, translateY: -4 }}
+                    className="flex flex-col bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] overflow-hidden transition-all hover:bg-white/15 hover:border-secondary/50 group h-full shadow-2xl"
+                  >
+                    <div
+                      className="flex-1 flex flex-col items-center justify-center p-12 cursor-pointer"
+                      onClick={() => setRole('project_team')}
+                    >
+                      <div className="w-20 h-20 rounded-2xl bg-green-500/20 flex items-center justify-center mb-6 group-hover:bg-green-500/30 transition-all duration-300">
+                        <Users className="w-10 h-10 text-green-500" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-2">Project Team</h3>
+                    </div>
+                  </motion.div>
+                </div>
+
+                <button
+                  onClick={() => setCompanySubSelect(false)}
+                  className="mt-8 flex items-center text-white/60 hover:text-white mx-auto transition-colors text-sm font-medium"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to options
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="w-full max-w-md mx-auto"
+              >
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
+                  <button
+                    onClick={() => {
+                      if (role === 'admin' || role === 'project_team') {
+                        setRole(null);
+                        setCompanySubSelect(true);
+                      } else {
+                        setRole(null);
+                      }
+                    }}
+                    className="flex items-center text-white/60 hover:text-white mb-8 transition-colors text-sm font-medium"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to options
+                  </button>
+
+                  <div className="text-center mb-8">
+                    <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${
+                      role === 'admin' ? 'bg-primary/20' : role === 'project_team' ? 'bg-green-500/20' : 'bg-secondary/20'
+                    }`}>
+                      {role === 'admin' ? (
+                        <ShieldCheck className="w-8 h-8 text-primary" />
+                      ) : role === 'project_team' ? (
+                        <Users className="w-8 h-8 text-green-500" />
+                      ) : (
+                        <UserCircle2 className="w-8 h-8 text-secondary" />
+                      )}
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-2">
+                      {role === 'admin' ? 'Admin' : role === 'project_team' ? 'Project Team' : 'Client'} Portal
+                    </h2>
+                    <p className="text-white/60">Please enter your credentials</p>
+                  </div>
+
+                  <form onSubmit={handleLogin} className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-white/80 mb-2">Email Address</label>
                       <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                         <input
@@ -162,7 +354,7 @@ export default function Login() {
                     </button>
                   </form>
 
-                  {role === 'admin' && (
+                  {(role === 'admin' || role === 'project_team') && (
                     <p className="mt-8 text-center text-sm text-white/40">
                       Internal use only. Need access?{' '}
                       <button

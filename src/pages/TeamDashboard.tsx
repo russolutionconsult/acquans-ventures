@@ -354,9 +354,9 @@ export default function TeamDashboard() {
                       <ProjectTeamCard
                         key={project.id}
                         project={project}
-                        onUpdateProgress={(p) => updateProjectProgress(project.id, p)}
-                        onUpdateInfo={(i) => updateProjectInfo(project.id, i)}
-                        onUpdateStatus={(s) => updateProjectStatus(project.id, s)}
+                        onUpdateProgress={(p: number) => updateProjectProgress(project.id, p)}
+                        onUpdateInfo={(i: string) => updateProjectInfo(project.id, i)}
+                        onUpdateStatus={(s: string) => updateProjectStatus(project.id, s)}
                         onMessage={() => navigate(`/messages/${project.id}`)}
                       />
                     ))
