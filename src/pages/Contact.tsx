@@ -231,7 +231,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Location</p>
-                    <p className="font-bold text-foreground">Ghana</p>
+                    <p className="font-bold text-foreground">Get Direction</p>
                   </div>
                 </a>
 
