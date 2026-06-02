@@ -149,7 +149,7 @@ export default function Footer() {
               href="https://www.russolutionconsult.com" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="hover:text-white transition-colors"
+              className="text-blue-500 hover:text-blue-400 font-semibold transition-colors"
             >
               Russolution Consult
             </a>
