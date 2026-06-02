@@ -5,7 +5,7 @@ import {
   BarChart3, Users, MessageSquare, Search, Filter,
   MoreVertical, CheckCircle2, Clock, AlertCircle, LogOut,
   Mail, Phone, Calendar, Briefcase, ChevronRight, UserPlus,
-  Loader2, ExternalLink, Heart, MapPin, FileText, Menu, X, BookOpen
+  Loader2, ExternalLink, Heart, MapPin, FileText, Menu, X, BookOpen, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -38,7 +38,7 @@ interface Staff {
 export default function AdminDashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'quotes' | 'clients' | 'projects' | 'guide'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'quotes' | 'clients' | 'projects' | 'team' | 'guide'>('overview');
   const [clients, setClients] = useState<any[]>([]);
   const [showCreateClient, setShowCreateClient] = useState(false);
   const [clientData, setClientData] = useState({ name: '', email: '', password: '', amount: '', selectedQuoteId: '' });
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['admin', 'staff'])
+        .in('role', ['admin', 'staff', 'project_team'])
         .order('full_name');
       if (error) throw error;
       setStaffList((data || []) as Staff[]);
@@ -373,6 +373,12 @@ export default function AdminDashboard() {
                   label="Clients" 
                   active={activeTab === 'clients'} 
                   onClick={() => setActiveTab('clients')} 
+                />
+                <SidebarItem 
+                  icon={ShieldCheck} 
+                  label="Project Team" 
+                  active={activeTab === 'team'} 
+                  onClick={() => setActiveTab('team')} 
                 />
                 <SidebarItem 
                   icon={BookOpen} 
@@ -722,6 +728,55 @@ export default function AdminDashboard() {
                           <button className="flex-1 py-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-primary hover:text-white transition-all font-bold text-xs flex items-center justify-center gap-2">
                             <MessageSquare className="w-4 h-4" /> Contact
                           </button>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'team' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 uppercase tracking-widest text-sm flex items-center gap-3">
+                    <ShieldCheck className="w-5 h-5 text-blue-600" /> Project Team Members
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {staffList.length === 0 ? (
+                    <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+                      <ShieldCheck className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                      <h3 className="text-lg font-bold text-gray-900">No team members</h3>
+                      <p className="text-gray-500">Admins and project team members will appear here.</p>
+                    </div>
+                  ) : (
+                    staffList.map((staff) => (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        key={staff.id}
+                        className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 hover:shadow-md transition-all group flex flex-col"
+                      >
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-xl ${
+                            staff.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'
+                          }`}>
+                            {staff.full_name ? staff.full_name[0] : 'U'}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 text-lg line-clamp-1">{staff.full_name}</h3>
+                            <p className={`text-[10px] font-black uppercase tracking-widest ${
+                              staff.role === 'admin' ? 'text-primary' : 'text-green-600'
+                            }`}>
+                              {staff.role.replace('_', ' ')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-auto pt-4 border-t border-gray-100">
+                          <a href={`mailto:${staff.email}`} className="text-sm font-medium text-gray-500 hover:text-primary flex items-center gap-2 transition-colors">
+                            <Mail className="w-4 h-4" /> {staff.email}
+                          </a>
                         </div>
                       </motion.div>
                     ))

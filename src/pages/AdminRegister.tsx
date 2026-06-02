@@ -1,7 +1,7 @@
 import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ShieldCheck, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, ShieldCheck, ArrowLeft, Loader2, AlertCircle, CheckCircle, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
@@ -10,6 +10,7 @@ export default function AdminRegister() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<'admin' | 'project_team'>('admin');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -20,9 +21,9 @@ export default function AdminRegister() {
     setLoading(true);
     setError(null);
 
-    // Restrict admin registration to branded domain only
+    // Restrict staff registration to branded domain only
     if (!email.toLowerCase().endsWith('@acquansventures.com')) {
-      setError('Unauthorized access. Admin registration requires an @acquansventures.com email address.');
+      setError('Unauthorized access. Staff registration requires an @acquansventures.com email address.');
       setLoading(false);
       return;
     }
@@ -32,7 +33,7 @@ export default function AdminRegister() {
         email,
         password,
         options: {
-          data: { full_name: fullName, role: 'admin' }
+          data: { full_name: fullName, role }
         }
       });
 
@@ -46,7 +47,7 @@ export default function AdminRegister() {
         id: user.id,
         email,
         full_name: fullName,
-        role: 'admin',
+        role,
         created_at: new Date().toISOString()
       });
 
@@ -93,9 +94,13 @@ export default function AdminRegister() {
 
               <div className="text-center mb-8">
                 <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center bg-primary/20">
-                  <ShieldCheck className="w-8 h-8 text-primary" />
+                  {role === 'admin' ? (
+                    <ShieldCheck className="w-8 h-8 text-primary" />
+                  ) : (
+                    <Users className="w-8 h-8 text-green-500" />
+                  )}
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-2">Admin Registration</h2>
+                <h2 className="text-3xl font-bold text-white mb-2">Company Registration</h2>
                 <p className="text-white/60">Restricted to authorized emails only</p>
               </div>
 
@@ -117,6 +122,34 @@ export default function AdminRegister() {
                 </div>
               ) : (
                 <form onSubmit={handleRegister} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">Account Type</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setRole('admin')}
+                        className={`py-3 px-4 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+                          role === 'admin'
+                            ? 'bg-primary/20 border-primary text-white font-bold'
+                            : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                        }`}
+                      >
+                        <ShieldCheck className="w-5 h-5" /> Admin
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRole('project_team')}
+                        className={`py-3 px-4 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+                          role === 'project_team'
+                            ? 'bg-green-500/20 border-green-500 text-white font-bold'
+                            : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                        }`}
+                      >
+                        <Users className="w-5 h-5" /> Project Team
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-white/80 mb-2">Full Name</label>
                     <input
@@ -178,7 +211,7 @@ export default function AdminRegister() {
                     {loading ? (
                       <Loader2 className="w-6 h-6 animate-spin" />
                     ) : (
-                      'Register Administrator'
+                      'Register Account'
                     )}
                   </button>
                 </form>
