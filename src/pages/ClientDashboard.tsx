@@ -150,8 +150,8 @@ export default function ClientDashboard() {
     };
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session && !localStorage.getItem('impersonatedClientId')) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' && !localStorage.getItem('impersonatedClientId')) {
         navigate('/login');
       }
     });
