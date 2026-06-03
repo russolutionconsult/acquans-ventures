@@ -26,6 +26,7 @@ interface Quote {
   project_info?: string;
   location?: string;
   client_id?: string;
+  amount?: number | string;
 }
 
 interface Staff {
@@ -312,11 +313,13 @@ export default function AdminDashboard() {
     } catch (err) { return 'Invalid Date'; }
   };
 
+  const totalRevenue = quotes.reduce((acc, quote) => acc + (parseFloat(quote.amount as any) || 0), 0);
+
   const statsList = [
     { label: 'Total Quotes', value: quotes.length, icon: MessageSquare, color: 'bg-blue-500' },
     { label: 'Pending Request', value: quotes.filter(q => q.status === 'pending').length, icon: Clock, color: 'bg-amber-500' },
-    { label: 'Successful Clients', value: 12, icon: Users, color: 'bg-emerald-500' },
-    { label: 'Monthly Growth', value: '+14%', icon: BarChart3, color: 'bg-purple-500' },
+    { label: 'Successful Clients', value: clients.length, icon: Users, color: 'bg-emerald-500' },
+    { label: 'Total Revenue (GHS)', value: `₵${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: BarChart3, color: 'bg-purple-500' },
   ];
 
   return (
@@ -927,6 +930,7 @@ export default function AdminDashboard() {
                       <div className="relative">
                         <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-400">₵</span>
                         <input
+                          required
                           type="number"
                           step="0.01"
                           value={clientData.amount}
