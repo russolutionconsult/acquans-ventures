@@ -90,9 +90,26 @@ export default function AdminClientJourney() {
   const updateQuoteStatus = async (status: Quote['status']) => {
     if (!id || !quote) return;
     try {
-      const { error } = await supabase.from('quotes').update({ status }).eq('id', id);
+      let progress = quote.manual_progress || 0;
+      switch (status) {
+        case 'pending': progress = 12; break;
+        case 'reviewed':
+        case 'in_review': progress = 25; break;
+        case 'contacted': progress = 37; break;
+        case 'quoted': progress = 50; break;
+        case 'negotiating': progress = 62; break;
+        case 'converted': progress = 75; break;
+        case 'completed': progress = 100; break;
+      }
+
+      const { error } = await supabase.from('quotes').update({ 
+        status,
+        manual_progress: progress,
+        last_progress_update: new Date().toISOString()
+      }).eq('id', id);
+      
       if (error) throw error;
-      setQuote({ ...quote, status });
+      setQuote({ ...quote, status, manual_progress: progress });
     } catch (err) {
       console.error('Error updating status:', err);
     }
