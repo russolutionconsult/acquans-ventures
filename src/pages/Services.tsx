@@ -103,7 +103,23 @@ export default function Services() {
 
   return (
     <Layout>
-      <SEO title="Services" />
+      <SEO 
+        title="Services"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Technical Installation & Building Services",
+          "provider": {
+            "@type": "LocalBusiness",
+            "name": "Acquans Ventures"
+          },
+          "description": "From installation and construction to training and consulting — we deliver comprehensive technical services with quality and reliability.",
+          "areaServed": {
+            "@type": "Country",
+            "name": "Ghana"
+          }
+        }}
+      />
       {/* Page Header */}
       <section className="py-20 lg:py-28 bg-slate-50/50">
         <div className="container mx-auto px-4 lg:px-8 text-center">
@@ -140,7 +156,7 @@ export default function Services() {
                   className={`group block bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 shadow-sm ${s.shadow} hover:-translate-y-2`}
                 >
                   <div className="h-48 overflow-hidden relative">
-                    <img loading="lazy"
+                    <img loading="lazy" decoding="async"
                       src={s.img}
                       alt={s.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"

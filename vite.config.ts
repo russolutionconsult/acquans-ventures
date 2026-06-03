@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
+import viteCompression from 'vite-plugin-compression';
 import path from 'path';
 
 export default defineConfig({
@@ -11,6 +12,14 @@ export default defineConfig({
       jpg: { quality: 75 },
       png: { quality: 80 },
       webp: { quality: 75 },
+    }),
+    viteCompression({
+      algorithm: 'gzip',
+      ext: '.gz',
+    }),
+    viteCompression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
     }),
   ],
   resolve: {
