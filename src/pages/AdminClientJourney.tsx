@@ -18,7 +18,7 @@ interface Quote {
   phone: string;
   service: string;
   message: string;
-  status: 'pending' | 'reviewed' | 'in_review' | 'contacted' | 'quoted' | 'negotiating' | 'converted' | 'completed' | 'lost' | 'suspended';
+  status: 'pending' | 'reviewed' | 'in_review' | 'contacted' | 'quoted' | 'negotiating' | 'converted' | 'wip' | 'closeout' | 'completed' | 'lost' | 'suspended';
   assigned_to?: string;
   assigned_name?: string;
   client_id?: string;
@@ -92,13 +92,15 @@ export default function AdminClientJourney() {
     try {
       let progress = quote.manual_progress || 0;
       switch (status) {
-        case 'pending': progress = 12; break;
+        case 'pending': progress = 14; break;
         case 'reviewed':
-        case 'in_review': progress = 25; break;
-        case 'contacted': progress = 37; break;
-        case 'quoted': progress = 50; break;
-        case 'negotiating': progress = 62; break;
-        case 'converted': progress = 75; break;
+        case 'in_review':
+        case 'contacted': progress = 28; break;
+        case 'quoted':
+        case 'negotiating': progress = 43; break;
+        case 'converted': progress = 57; break;
+        case 'wip': progress = 71; break;
+        case 'closeout': progress = 85; break;
         case 'completed': progress = 100; break;
       }
 
@@ -259,12 +261,12 @@ export default function AdminClientJourney() {
                         className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 transition-all duration-700 hidden md:block"
                         style={{
                           width: (
-                            !quote.status || quote.status === 'pending' || quote.status === 'reviewed' ? '12.5%' :
-                            quote.status === 'in_review' ? '25%' :
-                            quote.status === 'contacted' ? '37.5%' :
-                            quote.status === 'quoted' ? '50%' :
-                            quote.status === 'negotiating' ? '62.5%' :
-                            quote.status === 'converted' ? '75%' :
+                            !quote.status || quote.status === 'pending' || quote.status === 'reviewed' ? '0%' :
+                            quote.status === 'in_review' || quote.status === 'contacted' ? '16.6%' :
+                            quote.status === 'quoted' || quote.status === 'negotiating' ? '33.3%' :
+                            quote.status === 'converted' ? '50%' :
+                            quote.status === 'wip' ? '66.6%' :
+                            quote.status === 'closeout' ? '83.3%' :
                             quote.status === 'completed' ? '100%' : '0%'
                           )
                         }}
@@ -272,7 +274,7 @@ export default function AdminClientJourney() {
                     
                     {/* Status Steps */}
                     <div className="relative grid grid-cols-2 sm:grid-cols-4 md:flex md:justify-between gap-6 md:gap-0">
-                        {['pending', 'in_review', 'contacted', 'quoted', 'negotiating', 'converted', 'completed'].map((stage, i) => (
+                        {['pending', 'contacted', 'negotiating', 'converted', 'wip', 'closeout', 'completed'].map((stage, i) => (
                           <div key={stage} className="flex flex-col items-center gap-3">
                             <div className={`w-10 h-10 rounded-full border-4 ${
                               quote.status === stage || isAfter(quote.status || 'pending', stage) ? 'bg-primary border-primary/20 text-white' : 'bg-white border-slate-100 text-slate-300'
@@ -288,11 +290,11 @@ export default function AdminClientJourney() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <StageButton active={quote.status === 'in_review'} onClick={() => updateQuoteStatus('in_review')} icon={Filter} label="Review Request" color="blue" />
                     <StageButton active={quote.status === 'contacted'} onClick={() => updateQuoteStatus('contacted')} icon={Phone} label="Call Made" color="purple" />
-                    <StageButton active={quote.status === 'quoted'} onClick={() => updateQuoteStatus('quoted')} icon={FileText} label="Invoice Sent" color="amber" />
                     <StageButton active={quote.status === 'negotiating'} onClick={() => updateQuoteStatus('negotiating')} icon={Users} label="Negotiating" color="orange" />
                     <StageButton active={quote.status === 'converted'} onClick={() => updateQuoteStatus('converted')} icon={Heart} label="Client Signed" color="pink" />
+                    <StageButton active={quote.status === 'wip'} onClick={() => updateQuoteStatus('wip')} icon={Briefcase} label="Work In Progress" color="blue" />
+                    <StageButton active={quote.status === 'closeout'} onClick={() => updateQuoteStatus('closeout')} icon={FileText} label="Project Closeout" color="amber" />
                     <StageButton active={quote.status === 'completed'} onClick={() => updateQuoteStatus('completed')} icon={CheckCircle2} label="Job Done" color="emerald" />
                   </div>
                 </div>
@@ -510,6 +512,8 @@ function StatusBadge({ status }: { status: any }) {
     quoted: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     negotiating: 'bg-orange-100 text-orange-700 border-orange-200',
     converted: 'bg-pink-100 text-pink-700 border-pink-200',
+    wip: 'bg-blue-100 text-blue-700 border-blue-200',
+    closeout: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     lost: 'bg-red-100 text-red-700 border-red-200',
     suspended: 'bg-gray-100 text-gray-400 border-gray-200 shadow-none grayscale'
@@ -526,6 +530,6 @@ function StatusBadge({ status }: { status: any }) {
 }
 
 function isAfter(currentStatus: string, stage: string) {
-  const order = ['pending', 'in_review', 'contacted', 'quoted', 'negotiating', 'converted', 'completed'];
+  const order = ['pending', 'contacted', 'negotiating', 'converted', 'wip', 'closeout', 'completed'];
   return order.indexOf(currentStatus) > order.indexOf(stage);
 }

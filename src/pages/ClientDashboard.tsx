@@ -50,12 +50,12 @@ export default function ClientDashboard() {
         const clientQuotes = (allQuotes || []).filter((q: any) => q.email?.toLowerCase() === email?.toLowerCase());
 
         const mappedProjects = clientQuotes
-          .filter((q: any) => ['quoted', 'negotiating', 'converted', 'completed'].includes(q.status))
+          .filter((q: any) => ['converted', 'wip', 'closeout', 'completed'].includes(q.status))
           .map((q: any) => ({
             id: q.id,
             name: q.service,
             status: q.status === 'completed' ? 'completed' : 'ongoing',
-            progress: q.manual_progress !== undefined ? q.manual_progress : (q.status === 'completed' ? 100 : (q.status === 'converted' ? 75 : 30)),
+            progress: q.manual_progress !== null && q.manual_progress !== undefined ? q.manual_progress : (q.status === 'completed' ? 100 : (q.status === 'closeout' ? 85 : (q.status === 'wip' ? 71 : (q.status === 'converted' ? 57 : 30)))),
             location: q.location || 'Site Location',
             start_date: formatDate(q.created_at),
             service_type: q.service,
