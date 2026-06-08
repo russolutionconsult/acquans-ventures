@@ -340,68 +340,63 @@ export default function AdminDashboard() {
         </div>
 
         {/* Sidebar */}
-        <AnimatePresence>
-          {(mobileSidebarOpen || window.innerWidth >= 1024) && (
-            <motion.aside 
-              initial={{ x: -300, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -300, opacity: 0 }}
-              className={`w-64 bg-[#0F172A] text-white flex flex-col fixed lg:sticky top-[72px] h-[calc(100vh-72px)] z-50 lg:z-30 transition-all ${!mobileSidebarOpen && 'hidden lg:flex'}`}
+        <aside 
+          className={`w-64 bg-[#0F172A] text-white flex flex-col fixed lg:sticky top-[72px] h-[calc(100vh-72px)] z-50 lg:z-30 transition-transform duration-300 transform ${
+            mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
+        >
+          <div className="p-6">
+            <h2 className="text-xl font-bold text-primary">Admin Panel</h2>
+          </div>
+
+          <nav className="flex-1 px-4 space-y-2">
+            <SidebarItem 
+              icon={BarChart3} 
+              label="Overview" 
+              active={activeTab === 'overview'} 
+              onClick={() => setActiveTab('overview')} 
+            />
+            <SidebarItem 
+              icon={MessageSquare} 
+              label="Project Inquiries" 
+              active={activeTab === 'quotes'} 
+              onClick={() => setActiveTab('quotes')} 
+            />
+            <SidebarItem 
+              icon={Briefcase} 
+              label="Projects" 
+              active={activeTab === 'projects'} 
+              onClick={() => setActiveTab('projects')} 
+            />
+            <SidebarItem 
+              icon={Users} 
+              label="Clients" 
+              active={activeTab === 'clients'} 
+              onClick={() => setActiveTab('clients')} 
+            />
+            <SidebarItem 
+              icon={ShieldCheck} 
+              label="Project Team" 
+              active={activeTab === 'team'} 
+              onClick={() => setActiveTab('team')} 
+            />
+            <SidebarItem 
+              icon={BookOpen} 
+              label="User Guide" 
+              active={activeTab === 'guide'} 
+              onClick={() => setActiveTab('guide')} 
+            />
+          </nav>
+
+          <div className="p-4 border-t border-white/10">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all font-bold text-sm"
             >
-              <div className="p-6">
-                <h2 className="text-xl font-bold text-primary">Admin Panel</h2>
-              </div>
-
-              <nav className="flex-1 px-4 space-y-2">
-                <SidebarItem 
-                  icon={BarChart3} 
-                  label="Overview" 
-                  active={activeTab === 'overview'} 
-                  onClick={() => setActiveTab('overview')} 
-                />
-                <SidebarItem 
-                  icon={MessageSquare} 
-                  label="Project Inquiries" 
-                  active={activeTab === 'quotes'} 
-                  onClick={() => setActiveTab('quotes')} 
-                />
-                <SidebarItem 
-                  icon={Briefcase} 
-                  label="Projects" 
-                  active={activeTab === 'projects'} 
-                  onClick={() => setActiveTab('projects')} 
-                />
-                <SidebarItem 
-                  icon={Users} 
-                  label="Clients" 
-                  active={activeTab === 'clients'} 
-                  onClick={() => setActiveTab('clients')} 
-                />
-                <SidebarItem 
-                  icon={ShieldCheck} 
-                  label="Project Team" 
-                  active={activeTab === 'team'} 
-                  onClick={() => setActiveTab('team')} 
-                />
-                <SidebarItem 
-                  icon={BookOpen} 
-                  label="User Guide" 
-                  active={activeTab === 'guide'} 
-                  onClick={() => setActiveTab('guide')} 
-                />
-              </nav>
-
-              <div className="p-4 border-t border-white/10">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all font-bold text-sm"
-                >
-                  <LogOut className="w-5 h-5" /> Logout
-                </button>
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
+              <LogOut className="w-5 h-5" /> Logout
+            </button>
+          </div>
+        </aside>
 
         {/* Sidebar Overlay */}
         {mobileSidebarOpen && (

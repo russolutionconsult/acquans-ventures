@@ -41,6 +41,22 @@ const seoConfig: Record<string, { title: string; description: string }> = {
     title: 'Professional Pump Installation & Maintenance',
     description: 'Expert water pump solutions for domestic supply and industrial water management across Ghana.'
   },
+  '/services/boiler-installations': {
+    title: 'Boiler Installations & Industrial Maintenance',
+    description: 'Professional commercial and industrial boiler installations, steam piping systems, and maintenance services by certified technicians in Ghana.'
+  },
+  '/services/apprenticeship': {
+    title: 'Apprenticeship & Technical Training Programmes',
+    description: 'Developing local skills and empowering Ghanaian youth with hands-on vocational training in plumbing, HVAC, and building services.'
+  },
+  '/services/maintenance': {
+    title: 'Comprehensive Building Maintenance Services',
+    description: 'Preventive and corrective facility maintenance for plumbing, electrical, and HVAC building systems to ensure optimal efficiency and safety.'
+  },
+  '/services/consulting': {
+    title: 'Technical Consulting & Engineering Advisory',
+    description: 'Expert engineering consulting, system design auditing, and project planning advisory for building service installations.'
+  },
   '/projects': {
     title: 'Our Projects | Proven Track Record of Excellence',
     description: 'Explore our portfolio of completed works across various sectors, demonstrating our engineering precision and commitment to quality.'
@@ -49,6 +65,14 @@ const seoConfig: Record<string, { title: string; description: string }> = {
     title: 'Photo Gallery | Plumbing, Civil, HVAC & Boiler Works',
     description: 'Browse our photo gallery of completed plumbing, civil, heating, ventilation, boiler, and water treatment installations across Ghana.'
   },
+  '/why-choose-us': {
+    title: 'Why Choose Us | Our Technical Edge & Values',
+    description: 'Discover the technical expertise, reliability, safety compliance, and quality workmanship that make Acquans Ventures the preferred building services partner.'
+  },
+  '/blog': {
+    title: 'Blog & Technical Insights | Industry Guides',
+    description: 'Stay updated with technical installation guides, building services best practices, plumbing tips, and industry news from our engineering team.'
+  },
   '/contact': {
     title: 'Contact Us | Get in Touch with Our Experts',
     description: 'Have a project? Contact Acquans Ventures for expert advice and professional technical service inquiries.'
@@ -56,6 +80,38 @@ const seoConfig: Record<string, { title: string; description: string }> = {
   '/request-quote': {
     title: 'Request a Quotation | Start Your Project',
     description: 'Fill out our inquiry form to receive a professional estimate for your plumbing, civil, or HVAC project within 24 hours.'
+  },
+  '/login': {
+    title: 'Account Login | Client & Staff Portal',
+    description: 'Access the Acquans Ventures client portal or administrative console to track project execution progress and message team members.'
+  },
+  '/admin-register': {
+    title: 'Register Account | Staff Access Portal',
+    description: 'Create an administrator or project team account to manage project inquiries, chat threads, and site progress.'
+  },
+  '/admin-dashboard': {
+    title: 'Admin Dashboard | Project Management Hub',
+    description: 'Administrative console for managing project quotes, clients, staff assignments, and project messages.'
+  },
+  '/client-dashboard': {
+    title: 'Client Dashboard | Track Project Progress',
+    description: 'Secure client portal to monitor ongoing site works, read progress updates, and chat with technical managers in real-time.'
+  },
+  '/team-dashboard': {
+    title: 'Team Dashboard | Project Execution Console',
+    description: 'Project team console for updating project progress, saving site status updates, and communicating with clients.'
+  },
+  '/privacy': {
+    title: 'Privacy Policy | Data Protection',
+    description: 'Read the privacy policy of Acquans Ventures to understand how we collect, protect, and use your personal information.'
+  },
+  '/terms': {
+    title: 'Terms & Conditions | Service Agreement',
+    description: 'Terms of service and building services contract guidelines for projects undertaken by Acquans Ventures.'
+  },
+  '/cookies': {
+    title: 'Cookie Policy | Website Preferences',
+    description: 'Information on how we use cookies and tracking technologies to improve your experience on our website.'
   },
 };
 

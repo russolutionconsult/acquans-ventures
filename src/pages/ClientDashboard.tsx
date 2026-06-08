@@ -209,62 +209,57 @@ export default function ClientDashboard() {
         </div>
 
         {/* Sidebar */}
-        <AnimatePresence>
-          {(mobileSidebarOpen || window.innerWidth >= 1024) && (
-            <motion.aside 
-              initial={{ x: -300, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -300, opacity: 0 }}
-              className={`w-full lg:w-72 bg-[#1A2332] text-white flex flex-col fixed lg:sticky top-[72px] h-[calc(100vh-72px)] z-50 lg:z-30 transition-all ${!mobileSidebarOpen && 'hidden lg:flex'}`}
-            >
-              <div className="p-8 border-b border-white/5">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center text-xl font-bold">
-                    {userProfile?.full_name?.[0] || 'C'}
-                  </div>
-                  <div className="overflow-hidden">
-                    <h2 className="font-bold text-lg truncate">{userProfile?.full_name || 'Client'}</h2>
-                    <p className="text-white/40 text-xs uppercase tracking-wider font-semibold">Client Account</p>
-                  </div>
-                </div>
+        <aside 
+          className={`w-full lg:w-72 bg-[#1A2332] text-white flex flex-col fixed lg:sticky top-[72px] h-[calc(100vh-72px)] z-50 lg:z-30 transition-transform duration-300 transform ${
+            mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
+        >
+          <div className="p-8 border-b border-white/5">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center text-xl font-bold">
+                {userProfile?.full_name?.[0] || 'C'}
               </div>
+              <div className="overflow-hidden">
+                <h2 className="font-bold text-lg truncate">{userProfile?.full_name || 'Client'}</h2>
+                <p className="text-white/40 text-xs uppercase tracking-wider font-semibold">Client Account</p>
+              </div>
+            </div>
+          </div>
 
-              <nav className="flex-1 p-4 space-y-1">
-                <SidebarItem
-                  active={activeView === 'overview'}
-                  onClick={() => setActiveView('overview')}
-                  icon={LayoutDashboard} label="Overview"
-                />
-                <SidebarItem
-                  active={activeView === 'projects'}
-                  onClick={() => setActiveView('projects')}
-                  icon={Briefcase} label="Active Projects"
-                  count={projects.length}
-                />
-                <SidebarItem
-                  active={activeView === 'messages'}
-                  onClick={() => setActiveView('messages')}
-                  icon={MessageSquare} label="Communications"
-                  count={messages.filter((m: any) => !m.is_read).length}
-                />
-                <SidebarItem
-                  active={activeView === 'settings'}
-                  onClick={() => setActiveView('settings')}
-                  icon={Settings} label="Account Settings"
-                />
+          <nav className="flex-1 p-4 space-y-1">
+            <SidebarItem
+              active={activeView === 'overview'}
+              onClick={() => setActiveView('overview')}
+              icon={LayoutDashboard} label="Overview"
+            />
+            <SidebarItem
+              active={activeView === 'projects'}
+              onClick={() => setActiveView('projects')}
+              icon={Briefcase} label="Active Projects"
+              count={projects.length}
+            />
+            <SidebarItem
+              active={activeView === 'messages'}
+              onClick={() => setActiveView('messages')}
+              icon={MessageSquare} label="Communications"
+              count={messages.filter((m: any) => !m.is_read).length}
+            />
+            <SidebarItem
+              active={activeView === 'settings'}
+              onClick={() => setActiveView('settings')}
+              icon={Settings} label="Account Settings"
+            />
 
-                <div className="pt-8 mt-auto px-4">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 text-white/50 hover:text-red-400 transition-colors w-full py-3 text-sm font-bold"
-                  >
-                    <LogOut className="w-5 h-5" /> Sign Out
-                  </button>
-                </div>
-              </nav>
-            </motion.aside>
-          )}
-        </AnimatePresence>
+            <div className="pt-8 mt-auto px-4">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 text-white/50 hover:text-red-400 transition-colors w-full py-3 text-sm font-bold"
+              >
+                <LogOut className="w-5 h-5" /> Sign Out
+              </button>
+            </div>
+          </nav>
+        </aside>
 
         {/* Sidebar Overlay */}
         {mobileSidebarOpen && (
