@@ -16,7 +16,7 @@ interface Quote {
   phone: string;
   service: string;
   message: string;
-  status: 'pending' | 'reviewed' | 'in_review' | 'contacted' | 'quoted' | 'negotiating' | 'converted' | 'completed' | 'lost' | 'suspended';
+  status: 'pending' | 'reviewed' | 'in_review' | 'contacted' | 'quoted' | 'negotiating' | 'converted' | 'wip' | 'closeout' | 'completed' | 'lost' | 'suspended';
   assigned_to?: string;
   assigned_name?: string;
   created_at: any;
@@ -152,7 +152,7 @@ export default function TeamDashboard() {
     );
   }
 
-  const activeProjectsCount = projects.filter(q => ['quoted', 'negotiating', 'converted'].includes(q.status)).length;
+  const activeProjectsCount = projects.filter(q => ['converted', 'wip', 'closeout'].includes(q.status)).length;
   const completedProjectsCount = projects.filter(q => q.status === 'completed').length;
 
   const statsList = [
@@ -413,7 +413,7 @@ function ProjectTeamCard({ project, onUpdateProgress, onUpdateInfo, onUpdateStat
 
   const statuses = [
     'pending', 'reviewed', 'in_review', 'contacted', 'quoted', 
-    'negotiating', 'converted', 'completed', 'lost', 'suspended'
+    'negotiating', 'converted', 'wip', 'closeout', 'completed', 'lost', 'suspended'
   ];
 
   return (
@@ -513,6 +513,8 @@ function StatusBadge({ status }: { status: Quote['status'] }) {
     quoted: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     negotiating: 'bg-orange-100 text-orange-700 border-orange-200',
     converted: 'bg-pink-100 text-pink-700 border-pink-200',
+    wip: 'bg-blue-100 text-blue-700 border-blue-200',
+    closeout: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     lost: 'bg-red-100 text-red-700 border-red-200',
     suspended: 'bg-gray-100 text-gray-400 border-gray-200'

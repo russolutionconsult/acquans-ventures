@@ -18,7 +18,7 @@ interface Quote {
   phone: string;
   service: string;
   message: string;
-  status: 'pending' | 'reviewed' | 'in_review' | 'contacted' | 'quoted' | 'negotiating' | 'converted' | 'completed' | 'lost' | 'suspended';
+  status: 'pending' | 'reviewed' | 'in_review' | 'contacted' | 'quoted' | 'negotiating' | 'converted' | 'wip' | 'closeout' | 'completed' | 'lost' | 'suspended';
   assigned_to?: string;
   assigned_name?: string;
   created_at: any;
@@ -635,11 +635,11 @@ export default function AdminDashboard() {
                     </h2>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {quotes.filter(q => ['quoted', 'negotiating', 'converted'].includes(q.status)).length === 0 ? (
+                    {quotes.filter(q => ['converted', 'wip', 'closeout'].includes(q.status)).length === 0 ? (
                       <p className="text-gray-400 italic col-span-full py-10 text-center bg-white rounded-3xl border border-dashed border-gray-200">No active site works found.</p>
                     ) : (
                       quotes
-                        .filter(q => ['quoted', 'negotiating', 'converted'].includes(q.status))
+                        .filter(q => ['converted', 'wip', 'closeout'].includes(q.status))
                         .map(project => (
                           <ProjectAdminCard
                             key={project.id}
@@ -1062,6 +1062,8 @@ function StatusBadge({ status }: { status: Quote['status'] }) {
     quoted: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     negotiating: 'bg-orange-100 text-orange-700 border-orange-200',
     converted: 'bg-pink-100 text-pink-700 border-pink-200',
+    wip: 'bg-blue-100 text-blue-700 border-blue-200',
+    closeout: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     lost: 'bg-red-100 text-red-700 border-red-200',
     suspended: 'bg-gray-100 text-gray-400 border-gray-200'
