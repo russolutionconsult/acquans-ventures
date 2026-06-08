@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Phone, Menu, X, ArrowRight, ChevronDown } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Phone, Menu, X, ArrowRight, ChevronDown, LogOut } from 'lucide-react';
 import { technicalServices } from '@/data/services';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 
 const navLinks = [
   { label: 'Overview', path: '/' },
@@ -21,6 +23,63 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const getProfile = async (uid: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', uid)
+          .single();
+        if (error) throw error;
+        if (data && active) {
+          setRole(data.role);
+        }
+      } catch (err) {
+        console.error('Error fetching role in Header:', err);
+      }
+    };
+
+    const initAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && active) {
+        setUser(user);
+        await getProfile(user.id);
+      }
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!active) return;
+      if (session?.user) {
+        setUser(session.user);
+        await getProfile(session.user.id);
+      } else {
+        setUser(null);
+        setRole(null);
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setShowLogoutModal(false);
+    localStorage.removeItem('impersonatedClientId');
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -118,12 +177,36 @@ export default function Header() {
             >
               Get Quotation
             </Link>
-            <Link
-              to="/login"
-              className="flex items-center gap-2 btn-primary py-2.5"
-            >
-              Login <ArrowRight className="h-4 w-4" />
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to={
+                    role === 'admin'
+                      ? '/admin-dashboard'
+                      : role === 'project_team'
+                      ? '/team-dashboard'
+                      : '/client-dashboard'
+                  }
+                  className="flex items-center gap-2 btn-primary py-2.5"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => setShowLogoutModal(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-base font-bold transition-all"
+                  title="Log Out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 btn-primary py-2.5"
+              >
+                Login <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </div>
 
           {/* Mobile Toggle */}
@@ -202,17 +285,87 @@ export default function Header() {
               >
                 Get Quotation
               </Link>
-              <Link
-                to="/login"
-                onClick={() => setMobileOpen(false)}
-                className="btn-primary w-full flex items-center justify-center gap-2 py-3"
-              >
-                Login <ArrowRight className="h-4 w-4" />
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to={
+                      role === 'admin'
+                        ? '/admin-dashboard'
+                        : role === 'project_team'
+                        ? '/team-dashboard'
+                        : '/client-dashboard'
+                    }
+                    onClick={() => setMobileOpen(false)}
+                    className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setShowLogoutModal(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl transition-all"
+                  >
+                    <LogOut className="h-4 w-4" /> Log Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+                >
+                  Login <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
             </div>
           </div>
         )}
       </div>
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogoutModal(false)}
+              className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white w-full max-w-sm rounded-[24px] shadow-2xl overflow-hidden p-6 text-center border border-gray-150"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+                <LogOut className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Confirm Log Out</h3>
+              <p className="text-gray-500 text-sm mb-6 font-medium leading-relaxed">
+                Are you sure you want to log out of your dashboard? You will need to enter your credentials to log in again.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 py-3 px-4 border border-gray-200 hover:bg-gray-50 rounded-xl font-bold text-sm text-gray-600 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-600/20 transition-all"
+                >
+                  Log Out
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

@@ -1,5 +1,5 @@
 import SEO from '@/components/SEO';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserCircle2, ShieldCheck, ArrowLeft, Mail, Lock, Loader2, AlertCircle, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +17,30 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkActiveSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          if (profile.role === 'admin') {
+            navigate('/admin-dashboard');
+          } else if (profile.role === 'project_team') {
+            navigate('/team-dashboard');
+          } else if (profile.role === 'client') {
+            navigate('/client-dashboard');
+          }
+        }
+      }
+    };
+    checkActiveSession();
+  }, [navigate]);
 
   const handleForgotPassword = async () => {
     if (!email) {
