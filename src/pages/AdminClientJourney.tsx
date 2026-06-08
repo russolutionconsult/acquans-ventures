@@ -100,7 +100,7 @@ export default function AdminClientJourney() {
         case 'negotiating': progress = 43; break;
         case 'converted': progress = 57; break;
         case 'wip': progress = 71; break;
-        case 'closeout': progress = 85; break;
+        case 'closeout': progress = 95; break;
         case 'completed': progress = 100; break;
       }
 
