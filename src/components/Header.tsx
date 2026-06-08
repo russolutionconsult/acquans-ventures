@@ -193,7 +193,7 @@ export default function Header() {
                 </Link>
                 <button
                   onClick={() => setShowLogoutModal(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-base font-bold transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-red-50/50 border-2 border-red-500 hover:bg-red-600 hover:border-red-600 text-red-600 hover:text-white rounded-lg text-base font-bold transition-all active:scale-95 shadow-sm"
                   title="Log Out"
                 >
                   <LogOut className="h-4 w-4" />
@@ -305,7 +305,7 @@ export default function Header() {
                       setMobileOpen(false);
                       setShowLogoutModal(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl transition-all"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-50/50 border-2 border-red-500 text-red-600 font-bold rounded-xl transition-all hover:bg-red-600 hover:border-red-600 hover:text-white"
                   >
                     <LogOut className="h-4 w-4" /> Log Out
                   </button>
