@@ -215,6 +215,7 @@ export default function AdminClientJourney() {
                    <div className="flex items-center gap-4 text-sm text-slate-900 font-black">
                       <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-primary" /> {formatDate(quote.created_at)}</span>
                       <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-primary" /> {quote.service}</span>
+                      <span className="text-primary font-black bg-blue-50 border border-blue-100 px-3 py-1 rounded-lg">AQ-RFQ-{quote.id.slice(0, 8).toUpperCase()}</span>
                    </div>
                 </div>
               </div>

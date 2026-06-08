@@ -8,6 +8,7 @@ export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', service: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rfqNumber, setRfqNumber] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,7 +19,7 @@ export default function Contact() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('quotes').insert({
+      const { data, error } = await supabase.from('quotes').insert({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -26,9 +27,13 @@ export default function Contact() {
         message: formData.message,
         status: 'pending',
         created_at: new Date().toISOString()
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      if (data) {
+        setRfqNumber(`AQ-RFQ-${data.id.slice(0, 8).toUpperCase()}`);
+      }
 
       // Send Email Notification
       try {
@@ -43,7 +48,10 @@ export default function Contact() {
 
       setSubmitted(true);
       setFormData({ name: '', email: '', phone: '', service: '', message: '' });
-      setTimeout(() => setSubmitted(false), 5000);
+      setTimeout(() => {
+        setSubmitted(false);
+        setRfqNumber('');
+      }, 7000);
     } catch (err) {
       console.error('Error submitting quote:', err);
       alert('Failed to send message. Please try again or call us directly.');
@@ -182,9 +190,16 @@ export default function Contact() {
                 </button>
 
                 {submitted && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium animate-fade-in bg-green-50 border border-green-200 rounded-xl p-3">
-                    <CheckCircle className="h-4 w-4" />
-                    Thank you! Your message has been sent successfully.
+                  <div className="flex flex-col items-center justify-center gap-2 text-sm text-green-600 font-medium animate-fade-in bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 shrink-0" />
+                      <span>Thank you! Your message has been sent successfully.</span>
+                    </div>
+                    {rfqNumber && (
+                      <div className="mt-2 text-xs text-slate-500 bg-white border border-slate-200 px-4 py-2 rounded-lg inline-block font-black tracking-wide">
+                        RFQ Reference: <span className="text-primary select-all">{rfqNumber}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </form>

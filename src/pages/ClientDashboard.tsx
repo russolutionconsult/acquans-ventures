@@ -526,6 +526,9 @@ function ProjectRow({ project }: { project: Project }) {
             <span className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100 shadow-sm">
               <MapPin className="w-4 h-4" /> Site: {project.location || "Setting coordinate..."}
             </span>
+            <span className="flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 shadow-sm font-black">
+              RFQ: AQ-RFQ-{project.id.slice(0, 8).toUpperCase()}
+            </span>
             <Link
               to={`/messages/${project.id}`}
               className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-lg border border-blue-100 shadow-sm hover:bg-blue-100 transition-all font-black"
