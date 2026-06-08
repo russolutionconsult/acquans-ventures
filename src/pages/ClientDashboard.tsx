@@ -55,7 +55,7 @@ export default function ClientDashboard() {
             id: q.id,
             name: q.service,
             status: q.status === 'completed' ? 'completed' : 'ongoing',
-            progress: q.manual_progress !== null && q.manual_progress !== undefined ? q.manual_progress : (q.status === 'completed' ? 100 : (q.status === 'closeout' ? 85 : (q.status === 'wip' ? 71 : (q.status === 'converted' ? 57 : 30)))),
+            progress: q.manual_progress !== null && q.manual_progress !== undefined ? q.manual_progress : (q.status === 'completed' ? 100 : (q.status === 'closeout' ? 95 : (q.status === 'wip' ? 71 : (q.status === 'converted' ? 57 : 30)))),
             location: q.location || 'Site Location',
             start_date: formatDate(q.created_at),
             service_type: q.service,
