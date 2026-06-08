@@ -294,7 +294,7 @@ export default function TeamDashboard() {
                               </div>
                               <div>
                                  <p className="text-sm font-bold text-gray-900 line-clamp-1">{project.name}</p>
-                                 <p className="text-[10px] text-gray-400 font-medium">{project.service}</p>
+                                 <p className="text-[10px] text-gray-400 font-medium">{project.service} · AQ-RFQ-{project.id.slice(0, 8).toUpperCase()}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -421,7 +421,7 @@ function ProjectTeamCard({ project, onUpdateProgress, onUpdateInfo, onUpdateStat
       <div className="flex justify-between items-start mb-6">
         <div>
            <h3 className="text-xl font-bold text-gray-900">{project.name}</h3>
-           <p className="text-sm font-medium text-gray-500 mb-2">{project.service}</p>
+           <p className="text-sm font-medium text-gray-500 mb-2">{project.service} · AQ-RFQ-{project.id.slice(0, 8).toUpperCase()}</p>
            <a href={`mailto:${project.email}`} className="text-sm text-primary hover:underline flex items-center gap-1"><Mail className="w-4 h-4"/> {project.email}</a>
         </div>
         <StatusBadge status={project.status} />

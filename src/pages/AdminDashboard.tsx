@@ -477,7 +477,7 @@ export default function AdminDashboard() {
                             </div>
                             <div>
                                <p className="text-sm font-bold text-gray-900 line-clamp-1">{quote.name}</p>
-                               <p className="text-[10px] text-gray-400 font-medium">{formatDate(quote.created_at)}</p>
+                               <p className="text-[10px] text-gray-400 font-medium">{formatDate(quote.created_at)} · AQ-RFQ-{quote.id.slice(0, 8).toUpperCase()}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -574,6 +574,9 @@ export default function AdminDashboard() {
                               <StatusBadge status={quote.status} />
                               <span className="text-xs text-gray-400 flex items-center gap-1">
                                 <Calendar className="w-3 h-3" /> {formatDate(quote.created_at)}
+                              </span>
+                              <span className="text-xs font-bold text-primary">
+                                AQ-RFQ-{quote.id.slice(0, 8).toUpperCase()}
                               </span>
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 mb-2">{quote.name}</h3>
@@ -1001,7 +1004,7 @@ function ProjectAdminCard({ project, onUpdateProgress, onUpdateInfo, onUpdateLoc
             </div>
             <div>
               <h3 className="font-bold text-gray-900 text-lg tracking-tight line-clamp-1">{project.service}</h3>
-              <p className="text-xs text-gray-400 font-medium tracking-wide">ID: {project.id.slice(0, 8)} | Client: {project.name}</p>
+              <p className="text-xs text-gray-400 font-medium tracking-wide">RFQ: AQ-RFQ-{project.id.slice(0, 8).toUpperCase()} | Client: {project.name}</p>
             </div>
           </div>
           <button onClick={onClick} className={`p-2 hover:bg-white rounded-lg ${style.text} transition-all`}>

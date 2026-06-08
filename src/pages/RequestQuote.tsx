@@ -15,6 +15,7 @@ export default function RequestQuote() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rfqNumber, setRfqNumber] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,13 +26,17 @@ export default function RequestQuote() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('quotes').insert({
+      const { data, error } = await supabase.from('quotes').insert({
         ...formData,
         status: 'pending',
         created_at: new Date().toISOString()
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      if (data) {
+        setRfqNumber(`AQ-RFQ-${data.id.slice(0, 8).toUpperCase()}`);
+      }
 
       // Send Email Notification
       try {
@@ -91,12 +96,22 @@ export default function RequestQuote() {
                     <CheckCircle className="w-12 h-12 text-green-600" />
                   </div>
                   <h2 className="text-3xl font-extrabold text-gray-900 mb-4">Request Received!</h2>
-                  <p className="text-gray-500 text-lg mb-8">
+                  <p className="text-gray-500 text-lg mb-6">
                     Thank you for reaching out. A member of our technical team will review your project
                     details and contact you shortly.
                   </p>
+                  {rfqNumber && (
+                    <div className="bg-slate-50 border-2 border-slate-200 rounded-[24px] p-6 max-w-sm mx-auto mb-8 shadow-sm">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">RFQ Reference Number</p>
+                      <p className="text-2xl font-black text-primary select-all">{rfqNumber}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">Please quote this number for any inquiries</p>
+                    </div>
+                  )}
                   <button
-                    onClick={() => setSubmitted(false)}
+                    onClick={() => {
+                      setSubmitted(false);
+                      setRfqNumber('');
+                    }}
                     className="btn-primary px-8 py-4"
                   >
                     View Our Other Services

@@ -291,8 +291,8 @@ const ProjectMessages = () => {
 
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col text-right">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project ID</span>
-                <span className="text-xs font-black text-slate-900"># {quoteId?.slice(-6).toUpperCase()}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">RFQ Reference</span>
+                <span className="text-xs font-black text-slate-900">AQ-RFQ-{quoteId?.slice(0, 8).toUpperCase()}</span>
               </div>
               <div className="h-10 w-px bg-slate-100 mx-2" />
               <div className="flex items-center gap-1.5">
