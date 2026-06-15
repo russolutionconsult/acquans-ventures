@@ -118,6 +118,13 @@ export default function Footer() {
             <h4 className="text-base font-bold text-white mb-4">Contact</h4>
             <div className="flex flex-col gap-3">
               <a
+                href="tel:0244425035"
+                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                <Phone className="h-4 w-4 shrink-0" />
+                0244425035
+              </a>
+              <a
                 href="tel:0543861162"
                 className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
               >

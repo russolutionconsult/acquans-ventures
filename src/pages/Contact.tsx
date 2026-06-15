@@ -210,6 +210,19 @@ export default function Contact() {
               <h2 className="text-2xl font-bold text-foreground mb-6">Contact Information</h2>
               <div className="flex flex-col gap-4">
                 <a
+                  href="tel:0244425035"
+                  className="flex items-center gap-4 p-5 rounded-xl border border-border bg-white hover:shadow-md transition-shadow"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
+                    <Phone className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Phone</p>
+                    <p className="font-bold text-foreground">0244425035</p>
+                  </div>
+                </a>
+
+                <a
                   href="tel:0543861162"
                   className="flex items-center gap-4 p-5 rounded-xl border border-border bg-white hover:shadow-md transition-shadow"
                 >
