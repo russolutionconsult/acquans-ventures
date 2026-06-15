@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
                 <p><strong>Email:</strong> info@acquansventures.com</p>
-                <p><strong>Phone:</strong> 0543861162 / 0506624555</p>
+                <p><strong>Phone:</strong> 0244425035 / 0543861162 / 0506624555</p>
                 <p><strong>Location:</strong> Ghana</p>
               </div>
             </section>
